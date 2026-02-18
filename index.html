@@ -379,9 +379,12 @@
 
         const targetChars = poemTargets[training.poemKey].split('');
         sequence = targetChars;
+        const targetSet = new Set(targetChars);
+        const safeFillerPool = commonChars.filter((char) => !targetSet.has(char));
+        const fillerPool = safeFillerPool.length ? safeFillerPool : commonChars;
         const fill = [];
         while (targetChars.length + fill.length < total) {
-          fill.push(commonChars[Math.floor(Math.random() * commonChars.length)]);
+          fill.push(fillerPool[Math.floor(Math.random() * fillerPool.length)]);
         }
         return { sequence, grid: shuffle([...targetChars, ...fill]) };
       }
@@ -396,11 +399,11 @@
         }
         return (
           <span>
-            请按诗句顺序依次找到《<span className="hl">{training.poemKey === 'xjh' ? '相见欢' : '村居'}</span>》中的目标字。
+            请按诗句顺序依次找到《{training.poemKey === 'xjh' ? '相见欢' : '村居'}》中的目标字。
 
             <br />
 
-            原文：{poemFullText[training.poemKey]}
+            原文：<span className="hl">{poemFullText[training.poemKey]}</span>
           </span>
         );
       }
@@ -492,6 +495,12 @@
           return () => window.removeEventListener('keydown', onKey);
         }, [showReady]);
 
+        useEffect(() => () => {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+          }
+        }, []);
+
         const currentTarget = sequence[doneSet.size];
 
         const toggleTimer = () => {
@@ -499,7 +508,6 @@
           if (running) {
             clearInterval(timerRef.current);
             setRunning(false);
-            setShowResult(true);
             return;
           }
           startAtRef.current = performance.now() - elapsed;
@@ -557,13 +565,11 @@
                   const colors = ['#fef500', '#ff8a80', '#80d8ff', '#b9f6ca', '#ffd180', '#ea80fc', '#ffff8d'];
                   const color = training.colorful ? colors[i % colors.length] : '#ffffff';
                   const fontSize = `calc(var(--size) / ${difficulty.size} / 2.8)`;
-                  const textShadow = training.colorful ? `0 0 10px ${color}, 0 0 18px ${color}66` : 'none';
-                  const glowShadow = training.colorful ? `inset 0 0 12px ${color}22, 0 0 10px ${color}1a` : 'none';
                   return (
                     <div
                       key={`${value}-${i}`}
                       className={`grid-cell ${doneSet.has(i) ? 'done' : ''} ${running ? '' : 'inactive'}`}
-                      style={{ color, fontSize, textShadow, boxShadow: glowShadow }}
+                      style={{ color, fontSize }}
                       onClick={() => handleCellClick(value, i)}
                     >
                       {value}
