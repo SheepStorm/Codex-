@@ -345,6 +345,11 @@
         cj: '草长莺飞二月天拂堤杨柳醉春烟儿童散学归来早忙趁东风放纸鸢',
       };
 
+      const poemFullText = {
+        xjh: '无言独上西楼，月如钩。寂寞梧桐深院锁清秋。剪不断，理还乱，是离愁。别是一般滋味在心头。',
+        cj: '草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。',
+      };
+
       const commonChars = '天地人和山水花鸟风云春夏秋冬星河日月明清安乐福喜心静思学行梦志远近高低上下左右东西南北中'.split('');
 
       const shuffle = (arr) => {
@@ -389,7 +394,15 @@
         if (training.type === 'letter') {
           return <span>请按 <span className="hl">A-Y</span> 的顺序查表。</span>;
         }
-        return <span>请按诗句顺序依次找到《<span className="hl">{training.poemKey === 'xjh' ? '相见欢' : '村居'}</span>》中的目标字。</span>;
+        return (
+          <span>
+            请按诗句顺序依次找到《<span className="hl">{training.poemKey === 'xjh' ? '相见欢' : '村居'}</span>》中的目标字。
+
+            <br />
+
+            原文：{poemFullText[training.poemKey]}
+          </span>
+        );
       }
 
       function HomePage({ onSelectTraining }) {
@@ -419,7 +432,7 @@
                 <button className="cta-btn" onClick={onSelectTraining}>请选择训练项目 →</button>
                 <button className="ghost-btn" onClick={shareLink}>复制分享链接</button>
               </div>
-              <div className="share-tip">提示：把网页部署到 GitHub Pages / Vercel 后，分享链接所有人都可直接使用</div>
+              <div className="share-tip">提示：发布到 GitHub Pages 后可生成傻瓜链接，任何人点开即用</div>
             </div>
           </div>
         );

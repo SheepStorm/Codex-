@@ -30,3 +30,10 @@ Brain Training（舒尔特表）单页应用。
 
 ## 一键部署替代方案
 你也可以直接拖拽 `index.html` 到 Vercel / Netlify，几分钟拿到可分享链接。
+
+
+## 傻瓜链接（可直接分享）
+如果你的仓库是 `SheepStorm/Codex-`，启用 GitHub Pages 后可使用：
+`https://sheepstorm.github.io/Codex-/index.html`
+
+> 若暂时打不开，通常是 Pages 还在发布中（等 1~3 分钟）或仓库名/分支设置与上面不一致。
