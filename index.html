@@ -80,6 +80,34 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
       .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(254, 245, 0, 0.25); }
+      .ghost-btn {
+        border: 1px solid #4a4a4a;
+        border-radius: 999px;
+        background: transparent;
+        color: #ddd;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 10px 16px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+      }
+      .ghost-btn:hover {
+        color: #fff;
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      .home-actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .share-tip {
+        margin-top: 12px;
+        color: var(--text-sub);
+        font-size: 13px;
+      }
 
       .difficulty-page {
         max-width: 760px;
@@ -149,22 +177,22 @@
       .dot.active { background: var(--accent); }
 
       .training-main {
-        min-height: calc(100vh - 145px);
+        min-height: calc(100vh - 110px);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding-right: 86px;
+        padding-right: 110px;
       }
 
       .grid {
-        --size: min(66vw, 66vh);
+        --size: min(88vw, calc(100vh - 190px));
         width: var(--size);
         height: var(--size);
-        max-width: 740px;
-        max-height: 740px;
+        max-width: 95vw;
+        max-height: calc(100vh - 160px);
         display: grid;
-        gap: 8px;
+        gap: clamp(4px, 0.6vw, 8px);
       }
       .grid-cell {
         background: #111;
@@ -176,7 +204,7 @@
         font-weight: 800;
         user-select: none;
         cursor: pointer;
-        transition: transform 0.12s ease, background 0.2s ease;
+        transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
       }
       .grid-cell:hover { transform: scale(1.03); }
       .grid-cell.done { background: var(--success) !important; color: #fff !important; }
@@ -203,7 +231,9 @@
         font-weight: 800;
         cursor: pointer;
         box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+        transition: transform 0.2s ease;
       }
+      .start-stop:hover { transform: translateY(-50%) scale(1.04); }
 
       .modal-mask {
         position: fixed;
@@ -249,7 +279,12 @@
           width: 74px;
           height: 74px;
         }
+        .start-stop:hover { transform: scale(1.04); }
         .training-main { padding-right: 0; }
+        .grid {
+          --size: min(94vw, calc(100vh - 240px));
+          max-height: calc(100vh - 220px);
+        }
       }
     </style>
   </head>
@@ -358,6 +393,16 @@
       }
 
       function HomePage({ onSelectTraining }) {
+        const shareLink = async () => {
+          const url = window.location.href;
+          if (window.isSecureContext && navigator.clipboard) {
+            await navigator.clipboard.writeText(url);
+            alert('链接已复制，发给好友即可打开。');
+            return;
+          }
+          prompt('复制这个链接并分享：', url);
+        };
+
         return (
           <div className="page home-page">
             <div>
@@ -370,7 +415,11 @@
               </div>
               <h1 className="home-title">BRAIN<br /><span>TRAINING</span></h1>
               <p className="subtitle">通过科学训练释放你大脑的潜能</p>
-              <button className="cta-btn" onClick={onSelectTraining}>请选择训练项目 →</button>
+              <div className="home-actions">
+                <button className="cta-btn" onClick={onSelectTraining}>请选择训练项目 →</button>
+                <button className="ghost-btn" onClick={shareLink}>复制分享链接</button>
+              </div>
+              <div className="share-tip">提示：把网页部署到 GitHub Pages / Vercel 后，分享链接所有人都可直接使用</div>
             </div>
           </div>
         );
@@ -494,12 +543,14 @@
                 {grid.map((value, i) => {
                   const colors = ['#fef500', '#ff8a80', '#80d8ff', '#b9f6ca', '#ffd180', '#ea80fc', '#ffff8d'];
                   const color = training.colorful ? colors[i % colors.length] : '#ffffff';
-                  const fontSize = `calc(min(66vw, 66vh) / ${difficulty.size} / 2.8)`;
+                  const fontSize = `calc(var(--size) / ${difficulty.size} / 2.8)`;
+                  const textShadow = training.colorful ? `0 0 10px ${color}, 0 0 18px ${color}66` : 'none';
+                  const glowShadow = training.colorful ? `inset 0 0 12px ${color}22, 0 0 10px ${color}1a` : 'none';
                   return (
                     <div
                       key={`${value}-${i}`}
                       className={`grid-cell ${doneSet.has(i) ? 'done' : ''} ${running ? '' : 'inactive'}`}
-                      style={{ color, fontSize }}
+                      style={{ color, fontSize, textShadow, boxShadow: glowShadow }}
                       onClick={() => handleCellClick(value, i)}
                     >
                       {value}
