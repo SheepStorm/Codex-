@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Training - 大脑训练</title>
+    <style>
+      :root {
+        --bg: #1d1d1d;
+        --accent: #fef500;
+        --text-main: #ffffff;
+        --text-sub: #888888;
+        --success: #00c853;
+        --danger: #e92222;
+        --basic: #00c853;
+        --advanced: #2979ff;
+        --pro: #d500f9;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        color: var(--text-main);
+        background: var(--bg);
+        min-height: 100vh;
+      }
+      #root { min-height: 100vh; }
+
+      .page {
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .home-page {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        background: radial-gradient(circle at center, #2a2a00 0%, #1d1d1d 70%);
+      }
+
+      .brain-wrap { margin-bottom: 22px; animation: float 2.4s ease-in-out infinite; }
+      @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+      }
+
+      .brain-icon {
+        width: 130px;
+        height: 130px;
+        filter: drop-shadow(0 0 12px rgba(254, 245, 0, 0.5));
+      }
+
+      .home-title {
+        margin: 0;
+        line-height: 0.95;
+        font-size: clamp(38px, 7vw, 72px);
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+      .home-title span { color: var(--accent); }
+
+      .subtitle {
+        margin: 18px 0 28px;
+        color: var(--text-sub);
+        font-size: clamp(15px, 2.2vw, 20px);
+      }
+
+      .cta-btn {
+        border: 0;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #151515;
+        font-size: 16px;
+        font-weight: 700;
+        padding: 14px 24px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(254, 245, 0, 0.25); }
+
+      .difficulty-page {
+        max-width: 760px;
+        margin: 0 auto;
+        padding-top: 20px;
+      }
+
+      .top-nav {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+      .back-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid #333;
+        background: #242424;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+      }
+
+      .page-title { font-size: clamp(32px, 6vw, 48px); font-weight: 900; margin: 8px 0; }
+      .page-subtitle { color: var(--text-sub); margin: 0 0 26px; }
+
+      .difficulty-list { display: flex; flex-direction: column; gap: 14px; }
+      .difficulty-card {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 16px;
+        background: #242424;
+        border: 1px solid #313131;
+        border-radius: 16px;
+        padding: 18px;
+        cursor: pointer;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+      .difficulty-card:hover { transform: scale(1.015); border-color: var(--accent); }
+      .difficulty-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+        font-weight: 800;
+      }
+      .difficulty-card h3 { margin: 0 0 6px; }
+      .difficulty-card p { margin: 0; color: var(--text-sub); font-size: 14px; }
+      .count-tag { color: var(--text-sub); font-size: 13px; }
+
+      .training-page { padding: 12px 24px 24px; position: relative; }
+      .training-header {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .train-info h3 { margin: 0; font-size: 20px; }
+      .train-info p { margin: 2px 0 0; color: var(--text-sub); font-size: 14px; }
+      .progress-dots { display: flex; gap: 6px; }
+      .dot { width: 9px; height: 9px; border-radius: 50%; background: #3a3a3a; }
+      .dot.active { background: var(--accent); }
+
+      .training-main {
+        min-height: calc(100vh - 145px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-right: 86px;
+      }
+
+      .grid {
+        --size: min(66vw, 66vh);
+        width: var(--size);
+        height: var(--size);
+        max-width: 740px;
+        max-height: 740px;
+        display: grid;
+        gap: 8px;
+      }
+      .grid-cell {
+        background: #111;
+        border: 1px solid #343434;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        user-select: none;
+        cursor: pointer;
+        transition: transform 0.12s ease, background 0.2s ease;
+      }
+      .grid-cell:hover { transform: scale(1.03); }
+      .grid-cell.done { background: var(--success) !important; color: #fff !important; }
+      .grid-cell.inactive { cursor: default; opacity: 0.85; }
+
+      .target-info {
+        margin-top: 18px;
+        color: var(--text-main);
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .target-info span { color: var(--accent); }
+
+      .start-stop {
+        position: fixed;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 84px;
+        height: 84px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.25);
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
+      }
+
+      .modal-mask {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        animation: fadeIn 0.22s ease;
+        z-index: 99;
+      }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      .modal-card {
+        width: min(520px, 100%);
+        border-radius: 20px;
+        background: #232323;
+        border: 1px solid #3a3a3a;
+        padding: 24px;
+        text-align: center;
+      }
+      .modal-icon {
+        width: 66px;
+        height: 66px;
+        margin: 0 auto 10px;
+        border-radius: 50%;
+        background: rgba(254, 245, 0, 0.12);
+        color: var(--accent);
+        display: grid;
+        place-items: center;
+        font-size: 32px;
+      }
+      .modal-card h2 { margin: 4px 0 12px; font-size: 36px; font-weight: 900; }
+      .modal-card p { color: #d0d0d0; line-height: 1.65; }
+      .hl { color: var(--accent); font-weight: 800; }
+      .modal-tip { margin-top: 18px; font-size: 13px; color: var(--text-sub); }
+      .modal-actions { margin-top: 18px; display: flex; justify-content: center; gap: 12px; }
+
+      @media (max-width: 900px) {
+        .start-stop {
+          position: static;
+          transform: none;
+          margin-top: 18px;
+          width: 74px;
+          height: 74px;
+        }
+        .training-main { padding-right: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useEffect, useMemo, useRef, useState } = React;
+
+      const difficulties = [
+        {
+          id: 'basic',
+          name: '基础',
+          color: '#00c853',
+          size: 4,
+          description: '4×4 表格，数字查找训练',
+          trainings: [
+            { id: 'b1', label: '1-16 升序（纯黑字）', type: 'number', mode: 'asc', max: 16, colorful: false },
+            { id: 'b2', label: '16-1 降序（纯黑字）', type: 'number', mode: 'desc', max: 16, colorful: false },
+            { id: 'b3', label: '1-16 升序（彩色版）', type: 'number', mode: 'asc', max: 16, colorful: true },
+            { id: 'b4', label: '16-1 降序（彩色版）', type: 'number', mode: 'desc', max: 16, colorful: true },
+          ],
+        },
+        {
+          id: 'advanced',
+          name: '进阶',
+          color: '#2979ff',
+          size: 5,
+          description: '5×5 表格，数字+字母训练',
+          trainings: [
+            { id: 'a1', label: '1-25 升序（纯黑字）', type: 'number', mode: 'asc', max: 25, colorful: false },
+            { id: 'a2', label: 'A-Y 顺序（纯黑字）', type: 'letter', mode: 'asc', max: 25, colorful: false },
+            { id: 'a3', label: '25-1 降序（彩色版）', type: 'number', mode: 'desc', max: 25, colorful: true },
+            { id: 'a4', label: 'A-Y 顺序（彩色版）', type: 'letter', mode: 'asc', max: 25, colorful: true },
+          ],
+        },
+        {
+          id: 'pro',
+          name: '高阶',
+          color: '#d500f9',
+          size: 6,
+          description: '6×6 表格，数字+古诗词训练',
+          trainings: [
+            { id: 'p1', label: '1-36 升序（纯黑字）', type: 'number', mode: 'asc', max: 36, colorful: false },
+            { id: 'p2', label: '古诗词找字《相见欢》', type: 'poem', poemKey: 'xjh', colorful: false },
+            { id: 'p3', label: '1-36 升序（彩色版）', type: 'number', mode: 'asc', max: 36, colorful: true },
+            { id: 'p4', label: '36-1 降序（纯黑字）', type: 'number', mode: 'desc', max: 36, colorful: false },
+            { id: 'p5', label: '古诗词找字《村居》', type: 'poem', poemKey: 'cj', colorful: true },
+          ],
+        },
+      ];
+
+      const poemTargets = {
+        xjh: '无言独上西楼月如钩寂寞梧桐深院锁清秋',
+        cj: '草长莺飞二月天拂堤杨柳醉春烟儿童散学归来早忙趁东风放纸鸢',
+      };
+
+      const commonChars = '天地人和山水花鸟风云春夏秋冬星河日月明清安乐福喜心静思学行梦志远近高低上下左右东西南北中'.split('');
+
+      const shuffle = (arr) => {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      };
+
+      function buildItems(training, size) {
+        const total = size * size;
+        let sequence = [];
+
+        if (training.type === 'number') {
+          const base = Array.from({ length: training.max }, (_, i) => (i + 1).toString());
+          sequence = training.mode === 'desc' ? [...base].reverse() : base;
+          return { sequence, grid: shuffle(base) };
+        }
+
+        if (training.type === 'letter') {
+          const base = Array.from({ length: 25 }, (_, i) => String.fromCharCode(65 + i));
+          sequence = base;
+          return { sequence, grid: shuffle(base) };
+        }
+
+        const targetChars = poemTargets[training.poemKey].split('');
+        sequence = targetChars;
+        const fill = [];
+        while (targetChars.length + fill.length < total) {
+          fill.push(commonChars[Math.floor(Math.random() * commonChars.length)]);
+        }
+        return { sequence, grid: shuffle([...targetChars, ...fill]) };
+      }
+
+      function getRuleText(training) {
+        if (training.type === 'number') {
+          const range = training.mode === 'asc' ? `1-${training.max}` : `${training.max}-1`;
+          return <span>请按 <span className="hl">{range}</span> 的 <span className="hl">{training.mode === 'asc' ? '升序' : '降序'}</span> 查表。</span>;
+        }
+        if (training.type === 'letter') {
+          return <span>请按 <span className="hl">A-Y</span> 的顺序查表。</span>;
+        }
+        return <span>请按诗句顺序依次找到《<span className="hl">{training.poemKey === 'xjh' ? '相见欢' : '村居'}</span>》中的目标字。</span>;
+      }
+
+      function HomePage({ onSelectTraining }) {
+        return (
+          <div className="page home-page">
+            <div>
+              <div className="brain-wrap">
+                <svg className="brain-icon" viewBox="0 0 120 120" fill="none" stroke="#fef500" strokeWidth="4">
+                  <path d="M56 20c-8-6-20-4-27 3-8 7-10 19-5 28-6 6-8 17-3 26 5 10 16 15 26 13 4 8 13 14 23 14"/>
+                  <path d="M64 20c8-6 20-4 27 3 8 7 10 19 5 28 6 6 8 17 3 26-5 10-16 15-26 13-4 8-13 14-23 14"/>
+                  <path d="M60 18v84M42 39c11 2 18 10 18 22M78 39c-11 2-18 10-18 22M37 64c11-1 20 6 23 17M83 64c-11-1-20 6-23 17"/>
+                </svg>
+              </div>
+              <h1 className="home-title">BRAIN<br /><span>TRAINING</span></h1>
+              <p className="subtitle">通过科学训练释放你大脑的潜能</p>
+              <button className="cta-btn" onClick={onSelectTraining}>请选择训练项目 →</button>
+            </div>
+          </div>
+        );
+      }
+
+      function DifficultyPage({ onSelectDifficulty, onBack }) {
+        return (
+          <div className="page">
+            <div className="difficulty-page">
+              <div className="top-nav"><button className="back-btn" onClick={onBack}>←</button></div>
+              <h1 className="page-title">舒尔特表</h1>
+              <p className="page-subtitle">请选择训练难度</p>
+              <div className="difficulty-list">
+                {difficulties.map((d, i) => (
+                  <div key={d.id} className="difficulty-card" onClick={() => onSelectDifficulty(d)}>
+                    <div className="difficulty-icon" style={{ background: `${d.color}22`, color: d.color }}>{i + 1}</div>
+                    <div>
+                      <h3>{d.name}（{d.size}×{d.size}）</h3>
+                      <p>{d.description}</p>
+                    </div>
+                    <div className="count-tag">{d.trainings.length} 个训练</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      function TrainingPage({ difficulty, onBack, onComplete }) {
+        const [index, setIndex] = useState(0);
+        const [showReady, setShowReady] = useState(true);
+        const [showResult, setShowResult] = useState(false);
+        const [running, setRunning] = useState(false);
+        const [elapsed, setElapsed] = useState(0);
+        const [doneSet, setDoneSet] = useState(new Set());
+
+        const startAtRef = useRef(0);
+        const timerRef = useRef(null);
+
+        const training = difficulty.trainings[index];
+        const { sequence, grid } = useMemo(() => buildItems(training, difficulty.size), [training, difficulty.size]);
+
+        useEffect(() => {
+          setShowReady(true);
+          setShowResult(false);
+          setRunning(false);
+          setElapsed(0);
+          setDoneSet(new Set());
+          if (timerRef.current) clearInterval(timerRef.current);
+        }, [training]);
+
+        useEffect(() => {
+          if (!showReady) return undefined;
+          const onKey = () => setShowReady(false);
+          window.addEventListener('keydown', onKey);
+          return () => window.removeEventListener('keydown', onKey);
+        }, [showReady]);
+
+        const currentTarget = sequence[doneSet.size];
+
+        const toggleTimer = () => {
+          if (showReady || showResult) return;
+          if (running) {
+            clearInterval(timerRef.current);
+            setRunning(false);
+            setShowResult(true);
+            return;
+          }
+          startAtRef.current = performance.now() - elapsed;
+          timerRef.current = setInterval(() => setElapsed(performance.now() - startAtRef.current), 16);
+          setRunning(true);
+        };
+
+        const handleCellClick = (value, cellIndex) => {
+          if (!running) return;
+          if (value !== currentTarget) return;
+
+          setDoneSet((prev) => {
+            const next = new Set(prev);
+            next.add(cellIndex);
+            if (next.size === sequence.length) {
+              clearInterval(timerRef.current);
+              setRunning(false);
+              setShowResult(true);
+            }
+            return next;
+          });
+        };
+
+        const nextTraining = () => {
+          if (index < difficulty.trainings.length - 1) {
+            setIndex((v) => v + 1);
+          } else {
+            onComplete();
+          }
+        };
+
+        const formatTime = (ms) => {
+          const m = Math.floor(ms / 60000);
+          const s = Math.floor((ms % 60000) / 1000);
+          const msPart = Math.floor(ms % 1000).toString().padStart(3, '0');
+          return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${msPart}`;
+        };
+
+        return (
+          <div className="page training-page">
+            <div className="training-header">
+              <button className="back-btn" onClick={onBack}>←</button>
+              <div className="train-info">
+                <h3>{difficulty.name} · {training.label}</h3>
+                <p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p>
+              </div>
+              <div className="progress-dots">
+                {difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`} />)}
+              </div>
+            </div>
+
+            <div className="training-main">
+              <div className="grid" style={{ gridTemplateColumns: `repeat(${difficulty.size}, 1fr)` }}>
+                {grid.map((value, i) => {
+                  const colors = ['#fef500', '#ff8a80', '#80d8ff', '#b9f6ca', '#ffd180', '#ea80fc', '#ffff8d'];
+                  const color = training.colorful ? colors[i % colors.length] : '#ffffff';
+                  const fontSize = `calc(min(66vw, 66vh) / ${difficulty.size} / 2.8)`;
+                  return (
+                    <div
+                      key={`${value}-${i}`}
+                      className={`grid-cell ${doneSet.has(i) ? 'done' : ''} ${running ? '' : 'inactive'}`}
+                      style={{ color, fontSize }}
+                      onClick={() => handleCellClick(value, i)}
+                    >
+                      {value}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div>
+              <button
+                className="start-stop"
+                style={{ background: running ? 'var(--danger)' : 'var(--success)' }}
+                onClick={toggleTimer}
+              >
+                {running ? '停止' : '开始'}
+              </button>
+            </div>
+
+            {showReady && (
+              <div className="modal-mask" onClick={() => setShowReady(false)}>
+                <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-icon">▶</div>
+                  <h2>准备好了吗？</h2>
+                  <p>{getRuleText(training)}</p>
+                  <div className="modal-tip">点击任意键继续</div>
+                </div>
+              </div>
+            )}
+
+            {showResult && (
+              <div className="modal-mask" onClick={() => setShowResult(false)}>
+                <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-icon">✓</div>
+                  <h2>训练完成</h2>
+                  <p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p>
+                  <p>请休息10s后进行下一项训练</p>
+                  <div className="modal-actions">
+                    <button className="cta-btn" onClick={nextTraining}>下一个</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function App() {
+        const [currentPage, setCurrentPage] = useState('home');
+        const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+
+        if (currentPage === 'home') {
+          return <HomePage onSelectTraining={() => setCurrentPage('difficulty')} />;
+        }
+
+        if (currentPage === 'difficulty') {
+          return (
+            <DifficultyPage
+              onBack={() => setCurrentPage('home')}
+              onSelectDifficulty={(d) => {
+                setSelectedDifficulty(d);
+                setCurrentPage('training');
+              }}
+            />
+          );
+        }
+
+        return (
+          <TrainingPage
+            difficulty={selectedDifficulty}
+            onBack={() => setCurrentPage('difficulty')}
+            onComplete={() => {
+              alert('该难度全部训练完成，太棒了！');
+              setCurrentPage('difficulty');
+            }}
+          />
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>
