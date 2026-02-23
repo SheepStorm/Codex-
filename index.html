@@ -531,6 +531,7 @@
         const [groupIndex, setGroupIndex] = useState(0);
         const intervalRef = useRef(null);
         const timerRef = useRef(null);
+        const restTimerRef = useRef(null);
         const training = difficulty.trainings[index];
 
         const resetRound = () => {
@@ -539,10 +540,11 @@
           else setData(makeStroopCells(difficulty.rows, difficulty.cols, difficulty.allowInterference, difficulty.maxNoise));
           if (intervalRef.current) clearInterval(intervalRef.current);
           if (timerRef.current) clearInterval(timerRef.current);
+          if (restTimerRef.current) clearInterval(restTimerRef.current);
         };
 
         useEffect(() => { resetRound(); }, [index, difficulty.id]);
-        useEffect(() => () => { intervalRef.current && clearInterval(intervalRef.current); timerRef.current && clearInterval(timerRef.current); }, []);
+        useEffect(() => () => { intervalRef.current && clearInterval(intervalRef.current); timerRef.current && clearInterval(timerRef.current); restTimerRef.current && clearInterval(restTimerRef.current); }, []);
 
         const completeRound = () => {
           setRunning(false);
@@ -550,10 +552,10 @@
           clearInterval(timerRef.current);
           const rest = difficulty.roundRest;
           setRestLeft(rest);
-          const restTimer = setInterval(() => {
+          restTimerRef.current = setInterval(() => {
             setRestLeft((v) => {
               if (v <= 1) {
-                clearInterval(restTimer);
+                clearInterval(restTimerRef.current);
                 if (index < difficulty.trainings.length - 1) setIndex((n) => n + 1);
                 else setShowResult(true);
                 return 0;
