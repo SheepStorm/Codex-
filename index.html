@@ -247,18 +247,21 @@
       .project-list { display: flex; flex-direction: column; gap: 14px; }
       .stroop-stage {
         min-height: calc(100vh - 120px);
-        background: linear-gradient(180deg, #2a0016, #1a0010);
-        border: 1px solid #3a1a2a;
+        background: linear-gradient(180deg, #16000f, #0e000a);
+        border: 1px solid #2a1320;
         border-radius: 18px;
         padding: 18px;
         position: relative;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       .stroop-stage::before {
         content: '';
         position: absolute;
         inset: 0;
-        background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
         background-size: 40px 40px;
         pointer-events: none;
       }
@@ -307,16 +310,17 @@
         min-width: 1.1em;
         text-align: center;
       }
-      .arrow-top {
+      .arrow-top, .arrow-bottom {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        top: -116px;
         font-size: 120px;
         color: #fff;
         opacity: 0.92;
         text-shadow: 0 0 16px rgba(255,255,255,0.25);
       }
+      .arrow-top { top: -116px; }
+      .arrow-bottom { bottom: -116px; }
       .stroop-side-btn {
         position: fixed;
         right: 24px;
@@ -580,7 +584,7 @@
         const currentGroup = difficulty.isPro ? data[groupIndex] : null;
         const statusText = restLeft > 0 ? `休息中 ${restLeft}s` : (running ? `进行中 ${Math.floor(elapsed / 1000)}s` : '点击右侧开始/停止');
 
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <div className="arrow-top">↓</div> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">{difficulty.isPro ? '每轮后休息20s，共5轮' : '每轮后休息10s，共5轮'} · 点击任意处继续</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>已完成 {difficulty.name} 5轮 Stroop 训练。</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
+        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <><div className="arrow-top">↓</div><div className="arrow-bottom">↑</div></> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">{difficulty.isPro ? '每轮后休息20s，共5轮' : '每轮后休息10s，共5轮'} · 点击任意处继续</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>已完成 {difficulty.name} 5轮 Stroop 训练。</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
       }
 
       function App() {
