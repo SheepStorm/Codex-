@@ -307,17 +307,16 @@
         min-width: 1.1em;
         text-align: center;
       }
-      .arrow-top, .arrow-bottom {
+      .arrow-top {
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
+        top: -116px;
         font-size: 120px;
         color: #fff;
         opacity: 0.92;
         text-shadow: 0 0 16px rgba(255,255,255,0.25);
       }
-      .arrow-top { top: -116px; }
-      .arrow-bottom { bottom: -116px; }
       .stroop-side-btn {
         position: fixed;
         right: 24px;
@@ -389,8 +388,8 @@
         cj: '草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。',
       };
       const commonChars = '天地人和山水花鸟风云春夏秋冬星河日月明清安乐福喜心静思学行梦志远近高低上下左右东西南北中'.split('');
-      const colorWords = ['红','黄','蓝','绿','紫','白','黑'];
-      const colorMap = { 红:'#ff1744', 黄:'#ffd600', 蓝:'#00b0ff', 绿:'#00e676', 紫:'#aa00ff', 白:'#ffffff', 黑:'#b0bec5' };
+      const colorWords = ['白','红','黄','绿','蓝','紫'];
+      const colorMap = { 白:'#ffffff', 红:'#ff1744', 黄:'#ffd600', 绿:'#00e676', 蓝:'#00b0ff', 紫:'#aa00ff' };
       const noiseWords = ['七','川','非','井','丈','天','文','工','木','中','术','人'];
 
       const shuffle = (arr) => {
@@ -461,7 +460,7 @@
             const colorWord = palette[Math.floor(Math.random() * palette.length)];
             return { word, color: colorMap[colorWord] };
           });
-          groups.push({ chars, targetIndex: 1 });
+          groups.push({ chars, targetIndex: Math.floor(Math.random() * 3) });
         }
         return groups;
       }
@@ -511,7 +510,7 @@
             return next;
           });
         };
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>{difficulty.name} · {training.label}</h3><p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p></div><div className="progress-dots">{difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="training-main"><div className="grid" style={{ gridTemplateColumns:`repeat(${difficulty.size},1fr)` }}>{grid.map((value, i) => { const colors=['#fef500','#ff8a80','#80d8ff','#b9f6ca','#ffd180','#ea80fc','#ffff8d']; const color=training.colorful?colors[i%colors.length]:'#ffffff'; const fontSize=`calc(var(--size) / ${difficulty.size} / 2.8)`; return <div key={`${value}-${i}`} className={`grid-cell ${doneSet.has(i)?'done':''} ${running?'':'inactive'}`} style={{ color, fontSize }} onClick={() => handleCellClick(value, i)}>{value}</div>; })}</div><div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div><button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggleTimer}>{running ? '停止' : '开始'}</button></div>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{getRuleText(training)}</p><div className="modal-tip">点击任意处继续</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p><p>请休息10s后进行下一项训练</p><div className="modal-actions"><button className="cta-btn" onClick={() => index < difficulty.trainings.length - 1 ? setIndex(index + 1) : onComplete()}>下一个</button></div></div></div>}</div>;
+        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>{difficulty.name} · {training.label}</h3><p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p></div><div className="progress-dots">{difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="training-main"><div className="grid" style={{ gridTemplateColumns:`repeat(${difficulty.size},1fr)` }}>{grid.map((value, i) => { const colors=['#ffffff','#ff1744','#ffd600','#00e676','#00b0ff','#aa00ff']; const color=training.colorful?colors[i%colors.length]:'#ffffff'; const fontSize=`calc(var(--size) / ${difficulty.size} / 2.8)`; return <div key={`${value}-${i}`} className={`grid-cell ${doneSet.has(i)?'done':''} ${running?'':'inactive'}`} style={{ color, fontSize }} onClick={() => handleCellClick(value, i)}>{value}</div>; })}</div><div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div><button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggleTimer}>{running ? '停止' : '开始'}</button></div>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{getRuleText(training)}</p><div className="modal-tip">点击任意处继续</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p><p>请休息10s后进行下一项训练</p><div className="modal-actions"><button className="cta-btn" onClick={() => index < difficulty.trainings.length - 1 ? setIndex(index + 1) : onComplete()}>下一个</button></div></div></div>}</div>;
       }
 
       function StroopTrainingPage({ difficulty, onBack, onComplete }) {
@@ -581,7 +580,7 @@
         const currentGroup = difficulty.isPro ? data[groupIndex] : null;
         const statusText = restLeft > 0 ? `休息中 ${restLeft}s` : (running ? `进行中 ${Math.floor(elapsed / 1000)}s` : '点击右侧开始/停止');
 
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => idx === 1 ? <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div><div className="arrow-top">↓</div><div className="arrow-bottom">↑</div></div> : <div key={idx} className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">{difficulty.isPro ? '每轮后休息20s，共5轮' : '每轮后休息10s，共5轮'} · 点击任意处继续</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>已完成 {difficulty.name} 5轮 Stroop 训练。</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
+        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <div className="arrow-top">↓</div> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">{difficulty.isPro ? '每轮后休息20s，共5轮' : '每轮后休息10s，共5轮'} · 点击任意处继续</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>已完成 {difficulty.name} 5轮 Stroop 训练。</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
       }
 
       function App() {
