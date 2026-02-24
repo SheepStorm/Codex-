@@ -385,15 +385,15 @@
       const stroopDifficulties = [
         { id: 's-basic', name: '基础', color: '#00c853', description: '5×5，每秒切换，5轮训练', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sb${i+1}` })), rows: 5, cols: 5, allowInterference: false, maxNoise: 0, roundRest: 10 },
         { id: 's-advanced', name: '进阶', color: '#2979ff', description: '5×6，每秒切换，含随机干扰字（≤10）', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sa${i+1}` })), rows: 5, cols: 6, allowInterference: true, maxNoise: 10, roundRest: 10 },
-        { id: 's-pro', name: '高级', color: '#d500f9', description: '3字成组 × 30组/轮，箭头定位，5轮训练', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sp${i+1}` })), groupsPerRound: 30, allowInterference: true, maxNoise: 10, roundRest: 20, isPro: true },
+        { id: 's-pro', name: '高级', color: '#d500f9', description: '3字成组 × 30组/轮，箭头定位，5轮训练', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sp${i+1}` })), groupsPerRound: 30, allowInterference: true, maxNoise: 10, roundRest: 10, isPro: true },
       ];
 
       const wmDifficulties = [
-        { id: 'wm-basic', name: '基础', color: '#00c853', description: '数字/字母顺序与逆序复述', enabled: true, trainings: [
-          { id: 'wm-b1', label: '基础：顺序复述5个数字/字母', type: 'mix', mode: 'forward', length: 5, questions: 10, answerType: 'input' },
-          { id: 'wm-b2', label: '基础：倒序复述5个数字', type: 'digits', mode: 'backward', length: 5, questions: 10, answerType: 'input' },
-          { id: 'wm-b3', label: '基础：顺序复述5个随机字母', type: 'letters', mode: 'forward', length: 5, questions: 10, answerType: 'input' },
-          { id: 'wm-b4', label: '基础：倒序复述4个随机字母', type: 'letters', mode: 'backward', length: 4, questions: 10, answerType: 'input' },
+        { id: 'wm-basic', name: '基础', color: '#00c853', description: '单阶段作答：仅正序/倒序复述', enabled: true, trainings: [
+          { id: 'wm-b1', label: '基础：仅Phase1 顺序复述5个数字/字母', type: 'mix', mode: 'forward', length: 5, questions: 10, answerType: 'input', phase2Enabled: false },
+          { id: 'wm-b2', label: '基础：仅Phase1 倒序复述5个数字', type: 'digits', mode: 'backward', length: 5, questions: 10, answerType: 'input', phase2Enabled: false },
+          { id: 'wm-b3', label: '基础：仅Phase1 顺序复述5个随机字母', type: 'letters', mode: 'forward', length: 5, questions: 10, answerType: 'input', phase2Enabled: false },
+          { id: 'wm-b4', label: '基础：仅Phase1 倒序复述4个随机字母', type: 'letters', mode: 'backward', length: 4, questions: 10, answerType: 'input', phase2Enabled: false },
         ]},
         { id: 'wm-advanced', name: '进阶', color: '#2979ff', description: '两阶段作答：复述 + 原序列指定位', enabled: true, trainings: [
           { id: 'wm-a1', label: '训练1：数字/字母输入（顺序/逆序随机）', type: 'mix', mode: 'random', length: 5, questions: 10, answerType: 'input' },
@@ -595,7 +595,7 @@
           });
         };
 
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>{difficulty.name} · {training.label}</h3><p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p></div><div className="progress-dots">{difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="training-main"><div className="grid" style={{ gridTemplateColumns:`repeat(${difficulty.size},1fr)` }}>{grid.map((value, i) => { const colors=['#ffffff','#ff1744','#ffd600','#00e676','#00b0ff','#aa00ff']; const color=training.colorful?colors[i%colors.length]:'#ffffff'; const fontSize=`calc(var(--size) / ${difficulty.size} / 2.8)`; return <div key={`${value}-${i}`} className={`grid-cell ${doneSet.has(i)?'done':''} ${running?'':'inactive'}`} style={{ color, fontSize }} onClick={() => handleCellClick(value, i)}>{value}</div>; })}</div><div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div><button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggleTimer}>{running ? '停止' : '开始'}</button></div>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{getRuleText(training)}</p><div className="modal-tip">点击任意处继续</div></div></div>}{showResult && restLeft > 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p></div></div>}{showResult && restLeft === 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>太棒了！</h2><p>您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
+        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>{difficulty.name} · {training.label}</h3><p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p></div><div className="progress-dots">{difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="training-main"><div className="grid" style={{ gridTemplateColumns:`repeat(${difficulty.size},1fr)` }}>{grid.map((value, i) => { const colors=['#ffffff','#ff1744','#ffd600','#00e676','#00b0ff','#aa00ff']; const color=training.colorful?colors[i%colors.length]:'#ffffff'; const fontSize=`calc(var(--size) / ${difficulty.size} / 2.8)`; return <div key={`${value}-${i}`} className={`grid-cell ${doneSet.has(i)?'done':''} ${running?'':'inactive'}`} style={{ color, fontSize }} onClick={() => handleCellClick(value, i)}>{value}</div>; })}</div><div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div><button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggleTimer}>{running ? '停止' : '开始'}</button></div>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{getRuleText(training)}</p><div className="modal-tip">点击任意处继续</div></div></div>}{showResult && restLeft > 0 && <div className="modal-mask" onClick={(e) => { if (e.button !== 0) return; if (restRef.current) clearInterval(restRef.current); setShowResult(false); setRestLeft(0); setIndex((n) => n + 1); }}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">✓</div><h2>训练完成</h2><p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p><div className="modal-tip">点击鼠标左键可跳过休息</div></div></div>}{showResult && restLeft === 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>太棒了！</h2><p>您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
       }
 
       function StroopTrainingPage({ difficulty, onBack, onComplete }) {
@@ -662,7 +662,7 @@
         const currentGroup = difficulty.isPro ? data[groupIndex] : null;
         const statusText = restLeft > 0 ? `休息中 ${restLeft}s` : (running ? `进行中 ${Math.floor(elapsed / 1000)}s` : '点击右侧开始/停止');
 
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <><div className="arrow-top">↓</div><div className="arrow-bottom">↑</div></> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">{difficulty.isPro ? '每轮后休息20s，共5轮' : '每轮后休息10s，共5轮'} · 点击任意处继续</div></div></div>}{restLeft > 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">⏳</div><h2>休息一下</h2><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>太棒了！您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
+        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <><div className="arrow-top">↓</div><div className="arrow-bottom">↑</div></> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">每轮后休息10s，共5轮 · 点击任意处继续</div></div></div>}{restLeft > 0 && <div className="modal-mask" onClick={(e) => { if (e.button !== 0) return; if (restTimerRef.current) clearInterval(restTimerRef.current); setRestLeft(0); setIndex((n) => n + 1); }}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">⏳</div><h2>休息一下</h2><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p><div className="modal-tip">点击鼠标左键可跳过休息</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>太棒了！您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
       }
 
 
@@ -746,6 +746,7 @@
         const undoEmojiAnswer = () => setUserAnswerPhase1((prev) => prev.slice(0, -1));
 
         const submitPhase1 = () => {
+          const phase2Enabled = training.phase2Enabled !== false;
           const target = currentQuestion.answerSeqPhase1.map(normalize);
           const input = training.answerType === 'emoji' ? userAnswerPhase1.map(normalize) : userAnswerPhase1.map(normalize);
           const fb = target.map((v, i) => (input[i] === undefined || input[i] === '' ? null : (input[i] === v ? 'ok' : 'bad')));
@@ -753,9 +754,29 @@
           setAttemptsPhase1((v) => v + 1);
           const allCorrect = target.every((v, i) => input[i] === v);
           if (allCorrect) {
-            setPhase('phase2');
+            if (phase2Enabled) {
+              setPhase('phase2');
+            } else {
+              setStats((st) => ({
+                total: st.total + 1,
+                correct: st.correct + 1,
+                streak: st.streak + 1,
+                perTraining: { ...st.perTraining, [training.id]: { total: (st.perTraining[training.id]?.total || 0) + 1, correct: (st.perTraining[training.id]?.correct || 0) + 1 } },
+              }));
+              setPhase('phase1_feedback');
+            }
           } else {
-            setPhase('phase1_feedback');
+            if (phase2Enabled) {
+              setPhase('phase1_feedback');
+            } else {
+              setStats((st) => ({
+                total: st.total + 1,
+                correct: st.correct,
+                streak: 0,
+                perTraining: { ...st.perTraining, [training.id]: { total: (st.perTraining[training.id]?.total || 0) + 1, correct: (st.perTraining[training.id]?.correct || 0) } },
+              }));
+              setPhase('phase1_feedback');
+            }
           }
         };
 
@@ -765,7 +786,6 @@
           setPhase('phase1');
         };
 
-        const gotoPhase2 = () => setPhase('phase2');
 
         const submitPhase2 = () => {
           const ok = normalize(userAnswerPhase2) === normalize(currentQuestion.answerPhase2);
@@ -843,12 +863,13 @@
               <div className="modal-actions">
                 <button className="cta-btn" onClick={submitPhase1}>提交Phase1</button>
                 <button className="back-btn" style={{ width:'auto', height:'auto', padding:'10px 14px' }} onClick={() => { setShowSolution(true); setPhase('phase1_feedback'); }}>查看正确答案</button>
-                {phase === 'phase1_feedback' && <button className="back-btn" style={{ width:'auto', height:'auto', padding:'10px 14px' }} onClick={gotoPhase2}>进入Phase2</button>}
+                {phase === 'phase1_feedback' && training.phase2Enabled !== false && <button className="back-btn" style={{ width:'auto', height:'auto', padding:'10px 14px' }} onClick={() => setPhase('phase2')}>进入Phase2</button>}
                 {phase === 'phase1_feedback' && <button className="back-btn" style={{ width:'auto', height:'auto', padding:'10px 14px' }} onClick={resetPhase1}>再来一次</button>}
+                {phase === 'phase1_feedback' && training.phase2Enabled === false && <button className="cta-btn" onClick={nextQuestion}>下一题</button>}
               </div>
             </>}
 
-            {(phase === 'phase2' || phase === 'phase2_feedback') && <>
+            {training.phase2Enabled !== false && (phase === 'phase2' || phase === 'phase2_feedback') && <>
               <div className="modal-icon">②</div><h2>Phase 2 定位阶段</h2>
               <p>请输入<span className="hl">原序列第 {currentQuestion.n} 位</span>（n 基于原始展示序列）</p>
               {training.answerType !== 'emoji' ? <>
@@ -871,7 +892,7 @@
             {showSolution && <div style={{ marginTop:'10px', borderTop:'1px solid #444', paddingTop:'10px', textAlign:'left' }}>
               <div>原始序列：<span className="hl">{currentQuestion.originalSeq.join(' ')}</span></div>
               <div>Phase1 正确复述：<span className="hl">{currentQuestion.answerSeqPhase1.join(' ')}</span></div>
-              <div>第 {currentQuestion.n} 位答案：<span className="hl">{currentQuestion.answerPhase2}</span></div>
+              {training.phase2Enabled !== false && <div>第 {currentQuestion.n} 位答案：<span className="hl">{currentQuestion.answerPhase2}</span></div>}
             </div>}
           </div></div>}
 
