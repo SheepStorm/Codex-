@@ -383,6 +383,17 @@
         { id: 's-pro', name: '高级', color: '#d500f9', description: '3字成组 × 30组/轮，箭头定位，5轮训练', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sp${i+1}` })), groupsPerRound: 30, allowInterference: true, maxNoise: 10, roundRest: 20, isPro: true },
       ];
 
+      const wmDifficulties = [
+        { id: 'wm-basic', name: '基础', color: '#00c853', description: '数字/字母顺序与逆序复述', enabled: true, trainings: [
+          { id: 'wm1', label: '练习1：顺序复述5个数字/字母', len: 5, pool: 'mix', reverse: false },
+          { id: 'wm2', label: '练习2：倒序复述5个数字', len: 5, pool: 'digits', reverse: true },
+          { id: 'wm3', label: '练习3：顺序复述5个随机字母', len: 5, pool: 'letters', reverse: false },
+          { id: 'wm4', label: '练习4：倒序复述4个随机字母', len: 4, pool: 'letters', reverse: true },
+        ]},
+        { id: 'wm-advanced', name: '进阶', color: '#2979ff', description: '即将开放', enabled: false, trainings: [] },
+        { id: 'wm-pro', name: '高级', color: '#d500f9', description: '即将开放', enabled: false, trainings: [] },
+      ];
+
       const poemTargets = {
         xjh: '无言独上西楼月如钩寂寞梧桐深院锁清秋剪不断理还乱是离愁别是一般滋味在心头',
         cj: '草长莺飞二月天拂堤杨柳醉春烟儿童散学归来早忙趁东风放纸鸢',
@@ -391,10 +402,13 @@
         xjh: '无言独上西楼，月如钩。寂寞梧桐深院锁清秋。剪不断，理还乱，是离愁。别是一般滋味在心头。',
         cj: '草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。',
       };
+
       const commonChars = '天地人和山水花鸟风云春夏秋冬星河日月明清安乐福喜心静思学行梦志远近高低上下左右东西南北中'.split('');
       const colorWords = ['白','红','黄','绿','蓝','紫'];
       const colorMap = { 白:'#ffffff', 红:'#ff1744', 黄:'#ffd600', 绿:'#00e676', 蓝:'#00b0ff', 紫:'#aa00ff' };
       const noiseWords = ['七','川','非','井','丈','天','文','工','木','中','术','人'];
+      const wmDigits = '123456789'.split('');
+      const wmLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
       const shuffle = (arr) => {
         const copy = [...arr];
@@ -403,6 +417,13 @@
           [copy[i], copy[j]] = [copy[j], copy[i]];
         }
         return copy;
+      };
+
+      const formatTime = (ms) => {
+        const m = Math.floor(ms / 60000);
+        const s = Math.floor((ms % 60000) / 1000);
+        const msPart = Math.floor(ms % 1000).toString().padStart(3, '0');
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${msPart}`;
       };
 
       function buildItems(training, size) {
@@ -433,13 +454,6 @@
         return <span>请按诗句顺序依次找到《{training.poemKey === 'xjh' ? '相见欢' : '村居'}》中的目标字。<br />原文：<span className="hl">{poemFullText[training.poemKey]}</span></span>;
       }
 
-      const formatTime = (ms) => {
-        const m = Math.floor(ms / 60000);
-        const s = Math.floor((ms % 60000) / 1000);
-        const msPart = Math.floor(ms % 1000).toString().padStart(3, '0');
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${msPart}`;
-      };
-
       function makeStroopCells(rows, cols, allowInterference, maxNoise) {
         const total = rows * cols;
         const noiseCount = allowInterference ? Math.floor(Math.random() * (maxNoise + 1)) : 0;
@@ -469,6 +483,11 @@
         return groups;
       }
 
+      function makeWMSequence(config) {
+        const pool = config.pool === 'digits' ? wmDigits : config.pool === 'letters' ? wmLetters : [...wmDigits, ...wmLetters];
+        return shuffle(pool).slice(0, config.len);
+      }
+
       function HomePage({ onStart }) {
         return <div className="page home-page"><div><div className="brain-wrap"><svg className="brain-icon" viewBox="0 0 120 120" fill="none" stroke="#fef500" strokeWidth="4"><path d="M56 20c-8-6-20-4-27 3-8 7-10 19-5 28-6 6-8 17-3 26 5 10 16 15 26 13 4 8 13 14 23 14"/><path d="M64 20c8-6 20-4 27 3 8 7 10 19 5 28 6 6 8 17 3 26-5 10-16 15-26 13-4 8-13 14-23 14"/><path d="M60 18v84M42 39c11 2 18 10 18 22M78 39c-11 2-18 10-18 22M37 64c11-1 20 6 23 17M83 64c-11-1-20 6-23 17"/></svg></div><h1 className="home-title">BRAIN<br /><span>TRAINING</span></h1><p className="subtitle">通过科学训练释放你大脑的潜能</p><button className="cta-btn" onClick={onStart}>请选择训练项目 →</button></div></div>;
       }
@@ -477,12 +496,13 @@
         const items = [
           { id: 'schulte', name: '舒尔特表', desc: '经典视觉搜索与注意力训练', color: '#00c853', icon: '⌗' },
           { id: 'stroop', name: 'Stroop 颜色干扰', desc: '说出颜色而非字义，强化抑制控制', color: '#fef500', icon: '◉' },
+          { id: 'wm', name: '序列工作记忆', desc: '数字/字母顺序与逆序复述训练', color: '#2979ff', icon: '◎' },
         ];
         return <div className="page"><div className="project-page"><div className="top-nav"><button className="back-btn" onClick={onBack}>←</button></div><h1 className="page-title">训练项目</h1><p className="page-subtitle">请选择一个训练系统</p><div className="project-list">{items.map((it)=> <div key={it.id} className="difficulty-card" onClick={() => onSelect(it.id)}><div className="difficulty-icon" style={{ background:`${it.color}22`, color: it.color }}>{it.icon}</div><div><h3>{it.name}</h3><p>{it.desc}</p></div><div className="count-tag">进入</div></div>)}</div></div></div>;
       }
 
       function DifficultyPage({ title, subtitle, difficulties, onSelectDifficulty, onBack }) {
-        return <div className="page"><div className="difficulty-page"><div className="top-nav"><button className="back-btn" onClick={onBack}>←</button></div><h1 className="page-title">{title}</h1><p className="page-subtitle">{subtitle}</p><div className="difficulty-list">{difficulties.map((d, i) => <div key={d.id} className="difficulty-card" onClick={() => onSelectDifficulty(d)}><div className="difficulty-icon" style={{ background:`${d.color}22`, color:d.color }}>{i+1}</div><div><h3>{d.name}</h3><p>{d.description}</p></div><div className="count-tag">{d.trainings.length} 个训练</div></div>)}</div></div></div>;
+        return <div className="page"><div className="difficulty-page"><div className="top-nav"><button className="back-btn" onClick={onBack}>←</button></div><h1 className="page-title">{title}</h1><p className="page-subtitle">{subtitle}</p><div className="difficulty-list">{difficulties.map((d, i) => <div key={d.id} className="difficulty-card" style={{ opacity: d.enabled === false ? 0.55 : 1, cursor: d.enabled === false ? 'not-allowed' : 'pointer' }} onClick={() => d.enabled === false ? null : onSelectDifficulty(d)}><div className="difficulty-icon" style={{ background:`${d.color}22`, color:d.color }}>{i+1}</div><div><h3>{d.name}{d.enabled === false ? '（即将开放）' : ''}</h3><p>{d.description}</p></div><div className="count-tag">{d.trainings.length || 0} 个训练</div></div>)}</div></div></div>;
       }
 
       function SchulteTrainingPage({ difficulty, onBack, onComplete }) {
@@ -498,8 +518,14 @@
         const restRef = useRef(null);
         const training = difficulty.trainings[index];
         const { sequence, grid } = useMemo(() => buildItems(training, difficulty.size), [training, difficulty.size]);
-        useEffect(() => { setShowReady(true); setShowResult(false); setRunning(false); setElapsed(0); setRestLeft(0); setDoneSet(new Set()); if (timerRef.current) clearInterval(timerRef.current); if (restRef.current) clearInterval(restRef.current); }, [training]);
+
+        useEffect(() => {
+          setShowReady(true); setShowResult(false); setRunning(false); setElapsed(0); setRestLeft(0); setDoneSet(new Set());
+          if (timerRef.current) clearInterval(timerRef.current);
+          if (restRef.current) clearInterval(restRef.current);
+        }, [training]);
         useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (restRef.current) clearInterval(restRef.current); }, []);
+
         const currentTarget = sequence[doneSet.size];
         const toggleTimer = () => {
           if (showReady || showResult || restLeft > 0) return;
@@ -508,14 +534,27 @@
           timerRef.current = setInterval(() => setElapsed(performance.now() - startAtRef.current), 16);
           setRunning(true);
         };
+
         const handleCellClick = (value, i) => {
           if (!running || value !== currentTarget) return;
           setDoneSet((prev) => {
             const next = new Set(prev); next.add(i);
-            if (next.size === sequence.length) { clearInterval(timerRef.current); setRunning(false); if (index < difficulty.trainings.length - 1) { setShowResult(true); setRestLeft(10); restRef.current = setInterval(() => setRestLeft((v) => { if (v <= 1) { clearInterval(restRef.current); setShowResult(false); setIndex((n) => n + 1); return 0; } return v - 1; }), 1000); } else { setShowResult(true); setRestLeft(0); } }
+            if (next.size === sequence.length) {
+              clearInterval(timerRef.current); setRunning(false);
+              if (index < difficulty.trainings.length - 1) {
+                setShowResult(true); setRestLeft(10);
+                restRef.current = setInterval(() => setRestLeft((v) => {
+                  if (v <= 1) { clearInterval(restRef.current); setShowResult(false); setIndex((n) => n + 1); return 0; }
+                  return v - 1;
+                }), 1000);
+              } else {
+                setShowResult(true); setRestLeft(0);
+              }
+            }
             return next;
           });
         };
+
         return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>{difficulty.name} · {training.label}</h3><p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p></div><div className="progress-dots">{difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="training-main"><div className="grid" style={{ gridTemplateColumns:`repeat(${difficulty.size},1fr)` }}>{grid.map((value, i) => { const colors=['#ffffff','#ff1744','#ffd600','#00e676','#00b0ff','#aa00ff']; const color=training.colorful?colors[i%colors.length]:'#ffffff'; const fontSize=`calc(var(--size) / ${difficulty.size} / 2.8)`; return <div key={`${value}-${i}`} className={`grid-cell ${doneSet.has(i)?'done':''} ${running?'':'inactive'}`} style={{ color, fontSize }} onClick={() => handleCellClick(value, i)}>{value}</div>; })}</div><div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div><button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggleTimer}>{running ? '停止' : '开始'}</button></div>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{getRuleText(training)}</p><div className="modal-tip">点击任意处继续</div></div></div>}{showResult && restLeft > 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p></div></div>}{showResult && restLeft === 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>太棒了！</h2><p>您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
       }
 
@@ -532,7 +571,6 @@
         const intervalRef = useRef(null);
         const timerRef = useRef(null);
         const restTimerRef = useRef(null);
-        const training = difficulty.trainings[index];
 
         const resetRound = () => {
           setRunning(false); setElapsed(0); setRestLeft(0); setShowReady(true); setShowResult(false); setActiveIndex(0); setGroupIndex(0);
@@ -555,11 +593,7 @@
           setRestLeft(rest);
           restTimerRef.current = setInterval(() => {
             setRestLeft((v) => {
-              if (v <= 1) {
-                clearInterval(restTimerRef.current);
-                if (index < difficulty.trainings.length - 1) setIndex((n) => n + 1);
-                return 0;
-              }
+              if (v <= 1) { clearInterval(restTimerRef.current); setIndex((n) => n + 1); return 0; }
               return v - 1;
             });
           }, 1000);
@@ -591,6 +625,66 @@
         return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <><div className="arrow-top">↓</div><div className="arrow-bottom">↑</div></> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">{difficulty.isPro ? '每轮后休息20s，共5轮' : '每轮后休息10s，共5轮'} · 点击任意处继续</div></div></div>}{restLeft > 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">⏳</div><h2>休息一下</h2><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>太棒了！您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
       }
 
+      function WMTrainingPage({ difficulty, onBack, onComplete }) {
+        const [index, setIndex] = useState(0);
+        const [showReady, setShowReady] = useState(true);
+        const [phase, setPhase] = useState('idle'); // idle/show/input
+        const [seq, setSeq] = useState([]);
+        const [showIndex, setShowIndex] = useState(-1);
+        const [inputs, setInputs] = useState([]);
+        const [errors, setErrors] = useState([]);
+        const timerRef = useRef(null);
+
+        const training = difficulty.trainings[index];
+
+        useEffect(() => {
+          if (!training) return;
+          setShowReady(true); setPhase('idle'); setSeq(makeWMSequence(training)); setShowIndex(-1);
+          setInputs(Array(training.len).fill('')); setErrors(Array(training.len).fill(false));
+          if (timerRef.current) clearInterval(timerRef.current);
+        }, [index, training?.id]);
+        useEffect(() => () => timerRef.current && clearInterval(timerRef.current), []);
+
+        const startShow = () => {
+          if (phase !== 'idle') return;
+          setPhase('show');
+          setShowIndex(0);
+          timerRef.current = setInterval(() => {
+            setShowIndex((v) => {
+              if (v + 1 >= seq.length) {
+                clearInterval(timerRef.current);
+                setPhase('input');
+                return -1;
+              }
+              return v + 1;
+            });
+          }, 1000);
+        };
+
+        const target = training?.reverse ? [...seq].reverse() : seq;
+        const normalized = (arr) => arr.map((v) => (v || '').trim().toUpperCase());
+
+        const checkAnswer = () => {
+          const inputN = normalized(inputs);
+          const targetN = normalized(target);
+          const wrong = inputN.map((v, i) => v !== targetN[i]);
+          setErrors(wrong);
+          if (!wrong.some(Boolean)) {
+            if (index < difficulty.trainings.length - 1) setIndex((v) => v + 1);
+            else onComplete();
+          }
+        };
+
+        const revealAndNext = () => {
+          if (index < difficulty.trainings.length - 1) setIndex((v) => v + 1);
+          else onComplete();
+        };
+
+        const centerChar = phase === 'show' && showIndex >= 0 ? seq[showIndex] : '•';
+
+        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>序列工作记忆 · 基础 · 练习{index + 1}/4</h3><p>{training?.label}</p></div><div className="progress-dots">{difficulty.trainings.map((_, i) => <span key={i} className={`dot ${i === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage"><div className="stroop-pro-wrap"><div className="stroop-pro-char" style={{ color: '#ffffff' }}>{centerChar}</div></div></div><button className="start-stop stroop-side-btn" style={{ background: phase === 'show' ? 'var(--danger)' : 'var(--success)' }} onClick={startShow}>{phase === 'show' ? '展示中' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>屏幕中央将每秒展示一个字符，请在展示完成后按{training?.reverse ? <span className="hl">逆序</span> : <span className="hl">顺序</span>}输入。</p><div className="modal-tip">点击任意处继续</div></div></div>}{phase === 'input' && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">⌨</div><h2>请输入答案</h2><p style={{ marginBottom: '12px' }}>共 {training.len} 位（数字/字母不区分大小写）</p><div className="modal-actions" style={{ flexWrap:'wrap' }}>{inputs.map((v, i) => <input key={i} value={v} maxLength={1} onChange={(e) => { const arr=[...inputs]; arr[i]=e.target.value; setInputs(arr); setErrors((old)=>{const n=[...old]; n[i]=false; return n;}); }} style={{ width:'44px', height:'48px', textAlign:'center', fontSize:'24px', fontWeight:800, borderRadius:'10px', border: `2px solid ${errors[i] ? '#e92222' : '#555'}`, background:'#111', color:'#fff' }} />)}</div><div className="modal-actions"><button className="cta-btn" onClick={checkAnswer}>提交</button><button className="back-btn" style={{ borderRadius:'999px', width:'auto', height:'auto', padding:'10px 14px' }} onClick={revealAndNext}>查看答案并下一题</button></div></div></div>}</div>;
+      }
+
       function App() {
         const [page, setPage] = useState('home');
         const [project, setProject] = useState('schulte');
@@ -599,11 +693,14 @@
         if (page === 'home') return <HomePage onStart={() => setPage('project')} />;
         if (page === 'project') return <ProjectPage onBack={() => setPage('home')} onSelect={(id) => { setProject(id); setPage('difficulty'); }} />;
         if (page === 'difficulty') {
-          const list = project === 'schulte' ? schulteDifficulties : stroopDifficulties;
-          return <DifficultyPage title={project === 'schulte' ? '舒尔特表' : 'Stroop 训练'} subtitle={project === 'schulte' ? '请选择训练难度' : '请选择 Stroop 难度'} difficulties={list} onBack={() => setPage('project')} onSelectDifficulty={(d) => { setSelectedDifficulty(d); setPage('training'); }} />;
+          const list = project === 'schulte' ? schulteDifficulties : project === 'stroop' ? stroopDifficulties : wmDifficulties;
+          const title = project === 'schulte' ? '舒尔特表' : project === 'stroop' ? 'Stroop 训练' : '序列工作记忆';
+          const sub = project === 'wm' ? '基础已开放，进阶/高级后续上线' : '请选择训练难度';
+          return <DifficultyPage title={title} subtitle={sub} difficulties={list} onBack={() => setPage('project')} onSelectDifficulty={(d) => { setSelectedDifficulty(d); setPage('training'); }} />;
         }
         if (project === 'schulte') return <SchulteTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
-        return <StroopTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
+        if (project === 'stroop') return <StroopTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
+        return <WMTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
       }
 
       ReactDOM.createRoot(document.getElementById('root')).render(<App />);
