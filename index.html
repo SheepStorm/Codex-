@@ -187,6 +187,72 @@
         font-weight: 600;
       }
       .highlight { color: var(--accent); font-weight: 800; }
+      .hl { color: var(--accent); font-weight: 900; font-size: 1.22em; }
+
+      .stroop-board {
+        width: min(92vw, calc(100vh - 170px));
+        height: min(92vw, calc(100vh - 170px));
+        max-width: 980px;
+        max-height: 980px;
+        background: #242424;
+        border: 1px solid #363636;
+        border-radius: 14px;
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+        align-content: center;
+      }
+      .stroop-cell {
+        background: #2f2f2f;
+        border: 1px solid #3a3a3a;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        opacity: 0.35;
+        transition: opacity 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+      }
+      .stroop-cell.active {
+        opacity: 1;
+        transform: scale(1.03);
+        border-color: var(--accent);
+      }
+
+      .stroop-advanced {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+      }
+      .stroop-group {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(70px, 1fr));
+        gap: clamp(12px, 2vw, 30px);
+        align-items: start;
+        width: min(720px, 86vw);
+      }
+      .stroop-item-wrap {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+      }
+      .stroop-arrow {
+        min-height: 28px;
+        font-size: clamp(22px, 3vw, 30px);
+        color: var(--accent);
+        font-weight: 900;
+      }
+      .stroop-word {
+        width: 100%;
+        min-height: clamp(70px, 10vh, 120px);
+        background: #2f2f2f;
+        border: 1px solid #3a3a3a;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: clamp(34px, 6vw, 70px);
+        font-weight: 900;
+      }
 
       .overlay {
         position: fixed;
@@ -257,7 +323,7 @@
 
       const trainingProjects = [
         { id: 'schulte', name: '舒尔特表', en: 'Schulte Table', color: '#00c853', desc: '数字/字母/诗词专注训练', status: 'available' },
-        { id: 'stroop', name: 'Stroop训练', en: 'Stroop Training', color: '#2979ff', desc: '颜色与词义冲突抑制训练', status: 'coming-soon' },
+        { id: 'stroop', name: 'Stroop训练', en: 'Stroop Training', color: '#2979ff', desc: '颜色与词义冲突抑制训练', status: 'available' },
         { id: 'nback-math', name: '1-back加减法训练', en: '1-back Math', color: '#d500f9', desc: '工作记忆 + 运算反应训练', status: 'coming-soon' },
         { id: 'seq-memory', name: '顺序工作记忆训练', en: 'Sequence Working Memory', color: '#ff6d00', desc: '顺序记忆与更新能力训练', status: 'coming-soon' },
       ];
@@ -325,10 +391,50 @@
             },
           ],
         },
+        stroop: {
+          id: 'stroop',
+          title: 'Stroop训练',
+          difficulties: [
+            {
+              id: 's-basic',
+              name: '基础',
+              color: '#00c853',
+              gridSize: 5,
+              view: { rows: 5, cols: 5, durationSec: 1, allowRandomChars: false, maxRandomChars: 0 },
+              trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sb-${i + 1}`, label: `基础训练 ${i + 1}` })),
+            },
+            {
+              id: 's-intermediate',
+              name: '进阶',
+              color: '#2979ff',
+              gridSize: 6,
+              view: { rows: 5, cols: 6, durationSec: 1, allowRandomChars: true, maxRandomChars: 10 },
+              trainings: Array.from({ length: 5 }, (_, i) => ({ id: `si-${i + 1}`, label: `进阶训练 ${i + 1}` })),
+            },
+            {
+              id: 's-advanced',
+              name: '高级',
+              color: '#d500f9',
+              gridSize: 3,
+              view: { mode: 'advanced', groupSize: 3, totalGroups: 30, durationSec: 1, allowRandomChars: true, maxRandomChars: 10 },
+              trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sa-${i + 1}`, label: `高级训练 ${i + 1}` })),
+            },
+          ],
+        },
       };
 
       const COLOR_POOL = ['#ff6d00','#ff1744','#00e676','#00b0ff','#ffea00','#651fff','#ff9100','#18ffff','#d500f9','#64dd17'];
       const FILLER_CHARS = '天地人心山水风花雪月春夏秋冬日云海星光明德智勇和乐安宁学思行志'.split('');
+      const STROOP_COLOR_WORDS = ['白', '红', '黄', '绿', '蓝', '紫'];
+      const STROOP_COLOR_MAP = {
+        白: '#ffffff',
+        红: '#e92222',
+        黄: '#fef500',
+        绿: '#00c853',
+        蓝: '#2979ff',
+        紫: '#d500f9',
+      };
+      const STROOP_DISTRACTORS = ['七', '川', '非', '中', '井', '由', '甲', '申', '早', '未', '末', '才', '文'];
 
       const shuffle = (arr) => {
         const copy = [...arr];
@@ -340,6 +446,40 @@
       };
 
       const range = (start, end) => Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+      function pickRandom(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function createStroopToken(withRandomChar) {
+        const text = withRandomChar ? pickRandom(STROOP_DISTRACTORS) : pickRandom(STROOP_COLOR_WORDS);
+        const colorWord = pickRandom(STROOP_COLOR_WORDS.filter((c) => c !== text));
+        return { text, colorWord, color: STROOP_COLOR_MAP[colorWord] };
+      }
+
+      function createStroopBasicSet(rows, cols) {
+        return Array.from({ length: rows * cols }, () => createStroopToken(false));
+      }
+
+      function createStroopIntermediateSet(rows, cols, maxRandomChars) {
+        const total = rows * cols;
+        const randomCount = Math.min(maxRandomChars, Math.floor(Math.random() * (maxRandomChars + 1)));
+        const randomIndices = new Set(shuffle(range(0, total - 1)).slice(0, randomCount));
+        return Array.from({ length: total }, (_, idx) => createStroopToken(randomIndices.has(idx)));
+      }
+
+      function createStroopAdvancedGroups(totalGroups, allowRandomChars, maxRandomChars) {
+        const randomGroupCount = allowRandomChars ? Math.min(maxRandomChars, Math.floor(Math.random() * (maxRandomChars + 1))) : 0;
+        const randomGroupIndices = new Set(shuffle(range(0, totalGroups - 1)).slice(0, randomGroupCount));
+        return Array.from({ length: totalGroups }, (_, groupIndex) => {
+          const withRandom = randomGroupIndices.has(groupIndex);
+          const words = Array.from({ length: 3 }, () => createStroopToken(withRandom));
+          return {
+            words,
+            targetIndex: 1,
+          };
+        });
+      }
 
       function formatTime(ms) {
         const minutes = Math.floor(ms / 60000).toString().padStart(2, '0');
@@ -446,7 +586,7 @@
                 <div key={d.id} className="card" onClick={() => onSelectDifficulty(d)}>
                   <div>
                     <h3 style={{ color: d.color }}>{d.name}</h3>
-                    <p>{d.gridSize} × {d.gridSize} 表格 · {d.name}认知训练</p>
+                    <p>{module.id === 'stroop' ? `${d.name} Stroop 训练` : `${d.gridSize} × ${d.gridSize} 表格 · ${d.name}认知训练`}</p>
                     <div className="count">{d.trainings.length} 个训练项目</div>
                   </div>
                   <div className="icon" style={{ color: d.color }}>{d.gridSize}</div>
@@ -468,6 +608,8 @@
         const [showPrepare, setShowPrepare] = useState(true);
         const [showResult, setShowResult] = useState(false);
         const [showUnfinished, setShowUnfinished] = useState(false);
+        const [showRestBetweenRounds, setShowRestBetweenRounds] = useState(false);
+        const [restSeconds, setRestSeconds] = useState(10);
 
         const currentTraining = difficulty.trainings[index];
 
@@ -482,7 +624,20 @@
           setShowPrepare(true);
           setShowResult(false);
           setShowUnfinished(false);
+          setShowRestBetweenRounds(false);
+          setRestSeconds(10);
         }, [index, difficulty]);
+
+        useEffect(() => {
+          if (!showRestBetweenRounds) return;
+          if (restSeconds <= 0) {
+            setShowRestBetweenRounds(false);
+            nextTraining();
+            return;
+          }
+          const timer = setTimeout(() => setRestSeconds((s) => s - 1), 1000);
+          return () => clearTimeout(timer);
+        }, [showRestBetweenRounds, restSeconds]);
 
         useEffect(() => {
           if (!running) return;
@@ -514,7 +669,8 @@
             setElapsed(Date.now() - startAt);
             setRunning(false);
           }
-          setShowResult(true);
+          setRestSeconds(10);
+          setShowRestBetweenRounds(true);
         }
 
         function handleCellClick(cell) {
@@ -642,6 +798,181 @@
                 </div>
               </div>
             )}
+
+            {showRestBetweenRounds && (
+              <div className="overlay">
+                <div className="modal">
+                  <h2 style={{ marginTop: 0 }}>轮间休息</h2>
+                  <p>请休息<span className="hl">{restSeconds}</span>秒后进行下一轮。</p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      function StroopTrainingPage({ difficulty, onBack, onComplete }) {
+        const [index, setIndex] = useState(0);
+        const [running, setRunning] = useState(false);
+        const [showPrepare, setShowPrepare] = useState(true);
+        const [showRestBetweenRounds, setShowRestBetweenRounds] = useState(false);
+        const [restSeconds, setRestSeconds] = useState(10);
+        const [tokens, setTokens] = useState([]);
+        const [activeIndex, setActiveIndex] = useState(0);
+        const [groups, setGroups] = useState([]);
+        const [activeGroupIndex, setActiveGroupIndex] = useState(0);
+
+        const currentTraining = difficulty.trainings[index];
+        const isAdvanced = difficulty.view.mode === 'advanced';
+
+        function nextTraining() {
+          if (index < difficulty.trainings.length - 1) {
+            setIndex((i) => i + 1);
+          } else {
+            onComplete();
+          }
+        }
+
+        useEffect(() => {
+          setRunning(false);
+          setShowPrepare(true);
+          setShowRestBetweenRounds(false);
+          setRestSeconds(10);
+          setActiveIndex(0);
+          setActiveGroupIndex(0);
+          if (isAdvanced) {
+            setGroups(createStroopAdvancedGroups(difficulty.view.totalGroups, difficulty.view.allowRandomChars, difficulty.view.maxRandomChars));
+            setTokens([]);
+          } else if (difficulty.id === 's-intermediate') {
+            setTokens(createStroopIntermediateSet(difficulty.view.rows, difficulty.view.cols, difficulty.view.maxRandomChars));
+            setGroups([]);
+          } else {
+            setTokens(createStroopBasicSet(difficulty.view.rows, difficulty.view.cols));
+            setGroups([]);
+          }
+        }, [index, difficulty, isAdvanced]);
+
+        useEffect(() => {
+          if (!running || showPrepare || showRestBetweenRounds) return;
+          const timer = setInterval(() => {
+            if (isAdvanced) {
+              setActiveGroupIndex((prev) => {
+                if (prev >= groups.length - 1) {
+                  clearInterval(timer);
+                  setRunning(false);
+                  setShowRestBetweenRounds(true);
+                  setRestSeconds(10);
+                  return prev;
+                }
+                return prev + 1;
+              });
+            } else {
+              setActiveIndex((prev) => {
+                if (prev >= tokens.length - 1) {
+                  clearInterval(timer);
+                  setRunning(false);
+                  setShowRestBetweenRounds(true);
+                  setRestSeconds(10);
+                  return prev;
+                }
+                return prev + 1;
+              });
+            }
+          }, 1000);
+          return () => clearInterval(timer);
+        }, [running, showPrepare, showRestBetweenRounds, isAdvanced, tokens.length, groups.length]);
+
+        useEffect(() => {
+          if (!showRestBetweenRounds) return;
+          if (restSeconds <= 0) {
+            setShowRestBetweenRounds(false);
+            nextTraining();
+            return;
+          }
+          const timer = setTimeout(() => setRestSeconds((s) => s - 1), 1000);
+          return () => clearTimeout(timer);
+        }, [showRestBetweenRounds, restSeconds]);
+
+        useEffect(() => {
+          if (!showPrepare) return;
+          const onKey = () => setShowPrepare(false);
+          window.addEventListener('keydown', onKey);
+          return () => window.removeEventListener('keydown', onKey);
+        }, [showPrepare]);
+
+        const stroopFont = `clamp(30px, ${Math.floor(74 / (difficulty.view.cols || 5))}vw, 72px)`;
+        const activeGroup = groups[activeGroupIndex] || { words: [] };
+
+        return (
+          <div className="page training-page">
+            <div className="training-nav">
+              <button className="back" onClick={onBack}>← 返回</button>
+              <div className="training-info">
+                <h3>{difficulty.name} · {currentTraining.label}</h3>
+                <p>{isAdvanced ? '每秒一组，共30组；说出箭头所指文字的颜色' : '每秒切换一个字；说出文字的颜色而非文字内容'}</p>
+              </div>
+              <div className="dots">
+                {difficulty.trainings.map((_, i) => (
+                  <div key={i} className={`dot ${i < index ? 'done' : ''} ${i === index ? 'active' : ''}`} />
+                ))}
+              </div>
+            </div>
+
+            <div className="training-main">
+              <div className="grid-wrap">
+                {!isAdvanced && (
+                  <div className="stroop-board" style={{ gridTemplateColumns: `repeat(${difficulty.view.cols}, 1fr)` }}>
+                    {tokens.map((token, i) => (
+                      <div key={`${token.text}-${i}`} className={`stroop-cell ${i === activeIndex ? 'active' : ''}`} style={{ fontSize: stroopFont, color: token.color }}>
+                        {token.text}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {isAdvanced && (
+                  <div className="stroop-advanced">
+                    <div className="stroop-group">
+                      {activeGroup.words.map((word, idx) => (
+                        <div key={`${word.text}-${idx}`} className="stroop-item-wrap">
+                          <div className="stroop-arrow">{idx === 1 ? '↓' : ''}</div>
+                          <div className="stroop-word" style={{ color: word.color }}>{word.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="side-control">
+                <div className="timer">{isAdvanced ? `${activeGroupIndex + 1}/${difficulty.view.totalGroups}` : `${activeIndex + 1}/${tokens.length}`}</div>
+                <button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={() => setRunning((r) => !r)}>
+                  {running ? '停止' : '开始'}
+                </button>
+              </div>
+            </div>
+
+            {showPrepare && (
+              <div className="overlay" onClick={() => setShowPrepare(false)}>
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="play">▶</div>
+                  <h2>准备好了吗？</h2>
+                  <p>{isAdvanced ? '每组持续1秒，请说出箭头所指（中间）文字的颜色。' : '文字每秒切换，请说出当前亮起文字的颜色而非字义。'}</p>
+                  <p>仅使用：白 / 红 / 黄 / 绿 / 蓝 / 紫 六种颜色。</p>
+                  <div className="tip">点击任意键继续 / 点击下方按钮继续</div>
+                  <button className="next-btn" onClick={() => setShowPrepare(false)}>进入训练</button>
+                </div>
+              </div>
+            )}
+
+            {showRestBetweenRounds && (
+              <div className="overlay">
+                <div className="modal">
+                  <h2 style={{ marginTop: 0 }}>轮间休息</h2>
+                  <p>请休息<span className="hl">{restSeconds}</span>秒后进行下一轮。</p>
+                </div>
+              </div>
+            )}
           </div>
         );
       }
@@ -681,11 +1012,21 @@
         }
 
         return (
-          <TrainingPage
-            difficulty={selectedDifficulty}
-            onBack={() => setCurrentPage('difficulty')}
-            onComplete={() => setCurrentPage('difficulty')}
-          />
+          <>
+            {selectedProject === 'stroop' ? (
+              <StroopTrainingPage
+                difficulty={selectedDifficulty}
+                onBack={() => setCurrentPage('difficulty')}
+                onComplete={() => setCurrentPage('difficulty')}
+              />
+            ) : (
+              <TrainingPage
+                difficulty={selectedDifficulty}
+                onBack={() => setCurrentPage('difficulty')}
+                onComplete={() => setCurrentPage('difficulty')}
+              />
+            )}
+          </>
         );
       }
 
