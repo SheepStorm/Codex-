@@ -3,523 +3,414 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>加减法 · 1-back 算术</title>
+    <title>Brain Training</title>
     <style>
       :root {
-        --bg: #111318;
-        --panel: #191d26;
-        --panel-2: #1f2430;
+        --bg: #13151b;
+        --card: #1e2330;
+        --line: #333b4e;
         --text: #f5f7ff;
-        --muted: #9aa3b2;
-        --accent: #ffd84d;
-        --ok: #23c16b;
+        --muted: #9ca7ba;
+        --accent: #ffe45a;
+        --ok: #22c55e;
         --bad: #ef4444;
-        --line: #2f3747;
       }
-
       * { box-sizing: border-box; }
-      html, body { height: 100%; }
       body {
         margin: 0;
-        background: radial-gradient(circle at 20% -10%, #2a3040 0, var(--bg) 45%);
+        min-height: 100vh;
+        background: radial-gradient(circle at 20% -10%, #2b3243 0, var(--bg) 45%);
         color: var(--text);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
       }
-
-      .app {
-        min-height: 100%;
-        display: grid;
-        grid-template-rows: 1fr 1fr;
-      }
-
-      .top, .bottom {
-        display: grid;
-        place-items: center;
-        padding: 20px;
-      }
-
-      .top {
-        border-bottom: 1px solid var(--line);
-        background: linear-gradient(180deg, #1a1f2b 0%, #131824 100%);
-      }
-
-      .q-wrap { text-align: center; max-width: 900px; width: 100%; }
-      .meta {
-        display: flex;
-        justify-content: center;
-        gap: 18px;
-        flex-wrap: wrap;
-        color: var(--muted);
-        font-size: 14px;
-        margin-bottom: 14px;
-      }
-
-      .question {
-        font-size: clamp(56px, 12vw, 120px);
-        font-weight: 900;
-        letter-spacing: 0.05em;
-        margin: 10px 0;
-      }
-
-      .hint {
-        margin-top: 12px;
-        color: var(--muted);
-        font-size: clamp(14px, 2.2vw, 18px);
-      }
-
-      .bottom { background: var(--panel); }
-
-      .input-card {
-        width: min(760px, 100%);
-        background: var(--panel-2);
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 18px;
-      }
-
-      .row {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-
-      .sub-hint {
-        text-align: center;
-        color: var(--muted);
-        margin: 0 0 10px;
-        font-size: 14px;
-      }
-
-      .answer {
-        width: min(260px, 70vw);
-        height: 56px;
-        border-radius: 12px;
-        border: 2px solid #4a566f;
-        background: #0f131c;
-        color: var(--text);
-        text-align: center;
-        font-size: 28px;
-        font-weight: 700;
-        outline: none;
-      }
-
-      .answer:disabled { opacity: 0.55; cursor: not-allowed; }
-      .answer.flash-ok { border-color: var(--ok); box-shadow: 0 0 0 3px rgba(35,193,107,0.15); }
-      .answer.flash-bad { border-color: var(--bad); animation: shake 0.2s linear; }
-
-      @keyframes shake {
-        25% { transform: translateX(-3px); }
-        75% { transform: translateX(3px); }
-      }
-
+      .page { min-height: 100vh; padding: 20px; }
+      .center { display: grid; place-items: center; }
+      .home { text-align: center; min-height: calc(100vh - 40px); }
+      .title { font-size: clamp(42px, 8vw, 86px); margin: 0; font-weight: 900; letter-spacing: .06em; }
+      .title span { color: var(--accent); }
+      .sub { color: var(--muted); margin: 14px 0 26px; }
       .btn {
-        height: 56px;
-        padding: 0 16px;
-        border-radius: 12px;
-        border: 1px solid #4b556a;
-        background: #2d3748;
-        color: #fff;
-        font-weight: 700;
-        cursor: pointer;
+        border: 0; border-radius: 999px; padding: 12px 18px; font-size: 15px; font-weight: 700;
+        cursor: pointer; background: var(--accent); color: #232323;
       }
-
-      .btn.primary {
-        border: 0;
-        background: var(--accent);
-        color: #222;
+      .btn.ghost { background: transparent; color: #fff; border: 1px solid #4b556a; border-radius: 12px; }
+      .head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+      .back { width: 40px; height: 40px; border-radius: 50%; background: #242a38; border: 1px solid #3b4458; color: #fff; cursor: pointer; }
+      .grid { display: grid; gap: 12px; max-width: 860px; margin: 0 auto; }
+      .card {
+        border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 14px;
+        display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; cursor: pointer;
       }
+      .card p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+      .badge { color: var(--muted); font-size: 13px; }
 
-      .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-
-      .status {
-        margin-top: 10px;
-        text-align: center;
-        color: var(--muted);
-        min-height: 20px;
+      .train-wrap { min-height: calc(100vh - 40px); display: grid; grid-template-rows: 1fr 1fr; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+      .q-zone,.a-zone { display:grid; place-items:center; padding:18px; }
+      .q-zone { background: linear-gradient(180deg,#1a2030,#141a28); border-bottom:1px solid var(--line); }
+      .q-inner { text-align:center; width:min(900px,100%); }
+      .meta { display:flex; justify-content:center; gap:14px; flex-wrap:wrap; color:var(--muted); font-size:14px; margin-bottom:8px; }
+      .q { font-size: clamp(64px, 14vw, 150px); font-weight:900; letter-spacing:.04em; margin: 8px 0; }
+      .hint { color: var(--muted); }
+      .a-zone { background:#1b2130; }
+      .panel { width:min(760px,100%); background:#202738; border:1px solid var(--line); border-radius:14px; padding:16px; }
+      .panel-hint { text-align:center; color:var(--muted); margin:0 0 10px; font-size:14px; }
+      .row { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+      .input {
+        width:min(260px,70vw); height:56px; border-radius:12px; border:2px solid #55617a; background:#101523;
+        color:#fff; text-align:center; font-size:28px; font-weight:700; outline:none;
       }
-
-      .game-over {
-        margin-top: 14px;
-        border-top: 1px dashed #4b556a;
-        padding-top: 12px;
-      }
-
-      .game-over h3 { margin: 0 0 6px; }
-      .game-over p { margin: 6px 0; color: #d1d7e2; }
-
-      .review {
-        margin-top: 10px;
-        background: #121722;
-        border: 1px solid #313c4f;
-        border-radius: 10px;
-        padding: 8px 10px;
-      }
-
-      .review li {
-        margin: 6px 0;
-        color: #c7d0df;
-        font-size: 14px;
-      }
-
-      .tag { color: var(--accent); font-weight: 700; }
+      .input:disabled { opacity:.55; cursor:not-allowed; }
+      .input.ok { border-color:var(--ok); box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+      .input.bad { border-color:var(--bad); animation:shake .2s linear; }
+      @keyframes shake { 25% {transform:translateX(-3px);} 75% {transform:translateX(3px);} }
+      .status { margin-top:10px; min-height:20px; color:var(--muted); text-align:center; }
+      .gameover { margin-top:12px; border-top:1px dashed #495473; padding-top:10px; }
+      .gameover h3 { margin:0 0 8px; }
+      .gameover p { margin:6px 0; color:#d6ddeb; }
+      .list { margin:8px 0 0; padding-left:18px; }
+      .list li { margin:6px 0; color:#c6cfe0; font-size:14px; }
+      .tag { color:var(--accent); font-weight:700; }
     </style>
   </head>
   <body>
-    <main class="app">
-      <section class="top">
-        <div class="q-wrap">
-          <div class="meta" id="meta"></div>
-          <div class="question" id="question">-</div>
-          <div class="hint" id="hint"></div>
-        </div>
-      </section>
-
-      <section class="bottom">
-        <div class="input-card">
-          <p class="sub-hint" id="subHint"></p>
-          <div class="row">
-            <input id="answerInput" class="answer" inputmode="numeric" autocomplete="off" />
-            <button id="submitBtn" class="btn primary">提交</button>
-            <button id="pauseBtn" class="btn">暂停</button>
-          </div>
-          <div class="status" id="status"></div>
-          <div id="gameOverBox"></div>
-        </div>
-      </section>
-    </main>
+    <div id="app"></div>
 
     <script>
       // ========================
-      // config
-      // ========================
-      const CONFIG = {
-        operandMin: 0,
-        operandMax: 10,
-        restrictResultToRange: true, // 默认 A) 结果限制 0..10
-        allowNegativeInput: false,
-        plusRatio: 0.5,
-      };
-
-      // ========================
-      // storage（best 读写）
+      // storage
       // ========================
       const BEST_KEY = 'math_1back_best';
       const storage = {
-        loadBest() {
+        getBest() {
           const n = Number(localStorage.getItem(BEST_KEY));
           return Number.isFinite(n) && n >= 0 ? n : 0;
         },
-        saveBest(best) {
-          localStorage.setItem(BEST_KEY, String(best));
+        setBest(n) { localStorage.setItem(BEST_KEY, String(n)); },
+      };
+
+      // ========================
+      // generator
+      // ========================
+      let qid = 1;
+      function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+      function genQuestion(cfg) {
+        const plus = Math.random() < cfg.plusRatio;
+        if (plus) {
+          const a = ri(cfg.min, cfg.max);
+          const maxB = cfg.restrictResult ? cfg.max - a : cfg.max;
+          const b = ri(cfg.min, Math.max(cfg.min, maxB));
+          return mkQ(a, b, '+');
+        }
+        if (cfg.restrictResult) {
+          const b = ri(cfg.min, cfg.max);
+          const a = ri(b, cfg.max);
+          return mkQ(a, b, '-');
+        }
+        const a = ri(cfg.min, cfg.max);
+        const b = ri(cfg.min, cfg.max);
+        return mkQ(a, b, '-');
+      }
+      function mkQ(a, b, op) {
+        return { id: qid++, a, b, op, text: `${a} ${op === '-' ? '−' : '+'} ${b} = ?`, answer: op === '+' ? a + b : a - b };
+      }
+
+      // ========================
+      // state
+      // ========================
+      const TRAININGS = {
+        arithmetic: {
+          title: '加减法（1-back）',
+          difficulties: [
+            { id: 'basic', name: '基础', desc: '结果限制 0..10', config: { min: 0, max: 10, restrictResult: true, plusRatio: 0.5, firstShowSec: 3, turnSec: 4 } },
+            { id: 'free', name: '自由', desc: '操作数 0..10，结果可负数', config: { min: 0, max: 10, restrictResult: false, plusRatio: 0.5, firstShowSec: 3, turnSec: 4 } },
+          ],
         },
       };
 
-      // ========================
-      // generator（出题）
-      // ========================
-      let questionSeqId = 1;
+      const appState = {
+        page: 'home', // home | project | difficulty | training
+        project: null,
+        difficulty: null,
+        running: false,
+        paused: false,
+        qIndex: 0,
+        currentQ: null,
+        pendingQ: null,
+        streak: 0,
+        best: storage.getBest(),
+        history: [],
+        leftSec: 0,
+        phase: 'idle', // first_show | active | over
+        timer: null,
+      };
 
-      function randInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+      // ========================
+      // ui / render
+      // ========================
+      const app = document.getElementById('app');
+
+      function render() {
+        if (appState.page === 'home') return renderHome();
+        if (appState.page === 'project') return renderProject();
+        if (appState.page === 'difficulty') return renderDifficulty();
+        return renderTraining();
       }
 
-      function genAddition() {
-        const a = randInt(CONFIG.operandMin, CONFIG.operandMax);
-        const maxB = CONFIG.restrictResultToRange ? CONFIG.operandMax - a : CONFIG.operandMax;
-        const b = randInt(CONFIG.operandMin, Math.max(CONFIG.operandMin, maxB));
-        return { a, b, op: '+', answer: a + b };
+      function renderHome() {
+        app.innerHTML = `
+          <div class="page center">
+            <div class="home">
+              <h1 class="title">BRAIN<br><span>TRAINING</span></h1>
+              <p class="sub">首页 → 训练项目 → 难度 → 训练</p>
+              <button class="btn" id="goProject">请选择训练项目 →</button>
+            </div>
+          </div>`;
+        document.getElementById('goProject').onclick = () => { appState.page = 'project'; render(); };
       }
 
-      function genSubtraction() {
-        if (CONFIG.restrictResultToRange) {
-          const b = randInt(CONFIG.operandMin, CONFIG.operandMax);
-          const a = randInt(b, CONFIG.operandMax); // 保证 a-b>=0
-          return { a, b, op: '-', answer: a - b };
+      function renderProject() {
+        app.innerHTML = `
+          <div class="page">
+            <div class="head"><button class="back" id="backHome">←</button><h2>训练项目</h2></div>
+            <div class="grid">
+              <div class="card" id="goArithmetic"><div><strong>加减法</strong><p>错位输入/1-back 算术</p></div><div class="badge">进入</div></div>
+              <div class="card"><div><strong>舒尔特表</strong><p>即将开放</p></div><div class="badge">待开发</div></div>
+              <div class="card"><div><strong>工作记忆</strong><p>即将开放</p></div><div class="badge">待开发</div></div>
+            </div>
+          </div>`;
+        document.getElementById('backHome').onclick = () => { appState.page = 'home'; render(); };
+        document.getElementById('goArithmetic').onclick = () => { appState.project = 'arithmetic'; appState.page = 'difficulty'; render(); };
+      }
+
+      function renderDifficulty() {
+        const p = TRAININGS[appState.project];
+        app.innerHTML = `
+          <div class="page">
+            <div class="head"><button class="back" id="backProject">←</button><h2>${p.title} · 难度选择</h2></div>
+            <div class="grid">
+              ${p.difficulties.map((d) => `<div class="card" data-diff="${d.id}"><div><strong>${d.name}</strong><p>${d.desc}</p></div><div class="badge">开始</div></div>`).join('')}
+            </div>
+          </div>`;
+        document.getElementById('backProject').onclick = () => { appState.page = 'project'; render(); };
+        app.querySelectorAll('[data-diff]').forEach((el) => {
+          el.onclick = () => {
+            appState.difficulty = p.difficulties.find((d) => d.id === el.dataset.diff);
+            appState.page = 'training';
+            startTraining();
+            render();
+          };
+        });
+      }
+
+      function renderTraining() {
+        const d = appState.difficulty;
+        const disabled = !appState.running || appState.paused || !appState.pendingQ;
+        const subHint = !appState.running
+          ? '本局结束，点击再来一局。'
+          : appState.paused
+            ? '已暂停'
+            : !appState.pendingQ
+              ? '先看第 1 题，3 秒后自动进入下一题'
+              : `回答上一题（第 ${appState.qIndex - 1} 题）的答案，剩余 ${appState.leftSec}s`;
+        const topHint = !appState.pendingQ
+          ? '规则：第 1 题仅展示，不作答。'
+          : '规则：永远回答上一题答案。';
+
+        app.innerHTML = `
+          <div class="page">
+            <div class="head"><button class="back" id="backDiff">←</button><h2>${TRAININGS[appState.project].title} · ${d.name}</h2></div>
+            <div class="train-wrap">
+              <div class="q-zone">
+                <div class="q-inner">
+                  <div class="meta">
+                    <span>题号：<span class="tag">${appState.qIndex}</span></span>
+                    <span>连续正确：<span class="tag">${appState.streak}</span></span>
+                    <span>最高：<span class="tag">${appState.best}</span></span>
+                    <span>倒计时：<span class="tag">${appState.leftSec}s</span></span>
+                  </div>
+                  <div class="q">${appState.currentQ ? appState.currentQ.text : '-'}</div>
+                  <div class="hint">${topHint}</div>
+                </div>
+              </div>
+              <div class="a-zone">
+                <div class="panel">
+                  <p class="panel-hint">${subHint}</p>
+                  <div class="row">
+                    <input id="ans" class="input" inputmode="numeric" autocomplete="off" ${disabled ? 'disabled' : ''}>
+                    <button id="submit" class="btn" ${disabled ? 'disabled' : ''}>提交 / Enter</button>
+                    <button id="pause" class="btn ghost" ${!appState.running ? 'disabled' : ''}>${appState.paused ? '继续' : '暂停'}</button>
+                  </div>
+                  <div class="status" id="status"></div>
+                  <div id="overBox">${renderGameOverBlock()}</div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+        document.getElementById('backDiff').onclick = () => {
+          stopTimer();
+          appState.page = 'difficulty';
+          appState.running = false;
+          render();
+        };
+        const ans = document.getElementById('ans');
+        const submit = document.getElementById('submit');
+        const pause = document.getElementById('pause');
+        ans?.addEventListener('input', onInputSanitize);
+        ans?.addEventListener('keydown', (e) => { if (e.key === 'Enter') onSubmit(); });
+        submit?.addEventListener('click', onSubmit);
+        pause?.addEventListener('click', onPauseToggle);
+        if (ans && !ans.disabled) ans.focus();
+      }
+
+      function renderGameOverBlock() {
+        if (appState.running) return '';
+        if (appState.phase !== 'over') return '';
+        const failed = appState.history[appState.history.length - 1];
+        const recent = appState.history.slice(-5).reverse();
+        return `
+          <div class="gameover">
+            <h3>Game Over</h3>
+            <p>你答错了。你输入：<span class="tag">${escapeHtml(failed?.userInput ?? '')}</span>；正确答案：<span class="tag">${failed?.pending?.answer ?? '-'}</span></p>
+            <p>本次连续正确：<span class="tag">${appState.streak}</span> ｜ 历史最高：<span class="tag">${appState.best}</span></p>
+            <div class="row" style="justify-content:flex-start;margin:8px 0;">
+              <button class="btn" id="restart">再来一局</button>
+            </div>
+            <div><strong>最近 5 条记录</strong>
+              <ul class="list">
+                ${recent.map((h) => `<li>回答题：${h.pending ? h.pending.text : '无'}；正确：${h.pending ? h.pending.answer : '-'}；输入：${escapeHtml(h.userInput)}；结果：${h.correct ? '✅' : '❌'}</li>`).join('') || '<li>暂无</li>'}
+              </ul>
+            </div>
+          </div>`;
+      }
+
+      // ========================
+      // handlers
+      // ========================
+      function onInputSanitize(e) {
+        const raw = e.target.value;
+        const cleaned = raw.replace(/\s+/g, '').replace(/[^0-9-]/g, '').replace(/(?!^)-/g, '');
+        e.target.value = appState.difficulty.config.restrictResult ? cleaned.replace(/-/g, '') : cleaned;
+      }
+
+      function toInt(v) {
+        const s = String(v).trim();
+        if (!/^[-]?\d+$/.test(s)) return null;
+        return Number(s);
+      }
+
+      function onSubmit() {
+        if (!appState.running || appState.paused || !appState.pendingQ) return;
+        const ansEl = document.getElementById('ans');
+        if (!ansEl) return;
+        const raw = ansEl.value;
+        const parsed = toInt(raw);
+        if (parsed === null) return feedback('请输入整数', false);
+        const ok = parsed === appState.pendingQ.answer;
+        appState.history.push({ qShown: appState.currentQ, pending: appState.pendingQ, userInput: raw, correct: ok });
+        if (!ok) return endGame(raw);
+        appState.streak += 1;
+        feedback('正确', true, () => {
+          ansEl.value = '';
+          advanceTurn();
+        });
+      }
+
+      function onPauseToggle() {
+        if (!appState.running) return;
+        appState.paused = !appState.paused;
+        render();
+      }
+
+      function feedback(msg, ok, done) {
+        const status = document.getElementById('status');
+        const ansEl = document.getElementById('ans');
+        if (status) status.textContent = msg;
+        if (ansEl) {
+          ansEl.classList.remove('ok', 'bad');
+          void ansEl.offsetWidth;
+          ansEl.classList.add(ok ? 'ok' : 'bad');
         }
-        const a = randInt(CONFIG.operandMin, CONFIG.operandMax);
-        const b = randInt(CONFIG.operandMin, CONFIG.operandMax);
-        return { a, b, op: '-', answer: a - b };
+        if (ok) {
+          setTimeout(() => {
+            ansEl?.classList.remove('ok');
+            if (status) status.textContent = '';
+            done?.();
+          }, 100);
+        }
       }
 
-      function genQuestion() {
-        const usePlus = Math.random() < CONFIG.plusRatio;
-        const base = usePlus ? genAddition() : genSubtraction();
-        return {
-          id: questionSeqId++,
-          a: base.a,
-          b: base.b,
-          op: base.op,
-          text: `${base.a} ${base.op === '-' ? '−' : '+'} ${base.b} = ?`,
-          answer: base.answer,
+      // ========================
+      // training flow with timer
+      // ========================
+      function startTraining() {
+        stopTimer();
+        appState.running = true;
+        appState.paused = false;
+        appState.streak = 0;
+        appState.qIndex = 1;
+        appState.currentQ = genQuestion(appState.difficulty.config);
+        appState.pendingQ = null;
+        appState.history = [];
+        appState.phase = 'first_show';
+        appState.leftSec = appState.difficulty.config.firstShowSec; // 第一题展示 3s
+        startTick();
+      }
+
+      function advanceTurn() {
+        appState.qIndex += 1;
+        appState.pendingQ = appState.currentQ;
+        appState.currentQ = genQuestion(appState.difficulty.config);
+        appState.phase = 'active';
+        appState.leftSec = appState.difficulty.config.turnSec; // 每题 4s
+        render();
+      }
+
+      function startTick() {
+        stopTimer();
+        appState.timer = setInterval(() => {
+          if (!appState.running || appState.paused) return;
+          appState.leftSec -= 1;
+          if (appState.leftSec <= 0) {
+            if (appState.phase === 'first_show') {
+              advanceTurn();
+              return;
+            }
+            // active 阶段超时按错误处理
+            appState.history.push({ qShown: appState.currentQ, pending: appState.pendingQ, userInput: '(超时)', correct: false });
+            endGame('(超时)');
+            return;
+          }
+          render();
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (appState.timer) clearInterval(appState.timer);
+        appState.timer = null;
+      }
+
+      function endGame(userInput) {
+        appState.running = false;
+        appState.paused = false;
+        appState.phase = 'over';
+        if (appState.streak > appState.best) {
+          appState.best = appState.streak;
+          storage.setBest(appState.best);
+        }
+        stopTimer();
+        render();
+        const btn = document.getElementById('restart');
+        if (btn) btn.onclick = () => {
+          startTraining();
+          render();
         };
       }
 
-      // ========================
-      // state（状态机）
-      // ========================
-      const state = {
-        running: false,
-        paused: false,
-        currentQ: null,
-        pendingQ: null,
-        qIndex: 0,
-        streak: 0,
-        best: storage.loadBest(),
-        history: [],
-      };
-
-      function startGame() {
-        state.running = true;
-        state.paused = false;
-        state.streak = 0;
-        state.qIndex = 1;
-        state.currentQ = genQuestion();
-        state.pendingQ = null;
-        state.history = [];
-        render();
-      }
-
-      // 答对后推进：pendingQ 永远指向“上一题”
-      function nextTurn() {
-        state.qIndex += 1;
-        state.pendingQ = state.currentQ;
-        state.currentQ = genQuestion();
-        render();
-        focusInputIfEnabled();
-      }
-
-      function toIntOrNull(v) {
-        const raw = String(v).trim();
-        if (!raw) return null;
-        if (!/^[-]?\d+$/.test(raw)) return null;
-        const num = Number(raw);
-        return Number.isInteger(num) ? num : null;
-      }
-
-      function updateBestIfNeeded() {
-        if (state.streak > state.best) {
-          state.best = state.streak;
-          storage.saveBest(state.best);
-        }
-      }
-
-      function gameOver(userInputRaw) {
-        updateBestIfNeeded();
-        state.running = false;
-        state.paused = false;
-        ui.status.textContent = '你答错了，游戏结束。';
-        flashBad();
-        renderGameOver(userInputRaw);
-        renderMeta();
-      }
-
-      function submitAnswer() {
-        if (!state.running || state.paused) return;
-
-        if (!state.pendingQ) {
-          ui.status.textContent = '还没有要回答的题（第 2 题开始作答）。';
-          return;
-        }
-
-        const raw = ui.answerInput.value;
-        const parsed = toIntOrNull(raw);
-        if (parsed === null) {
-          ui.status.textContent = '请输入整数。';
-          flashBad();
-          return;
-        }
-
-        const correct = parsed === state.pendingQ.answer;
-        state.history.push({
-          qShown: state.currentQ,
-          pending: state.pendingQ,
-          userInput: raw,
-          correct,
-        });
-
-        if (!correct) {
-          gameOver(raw);
-          return;
-        }
-
-        state.streak += 1;
-        ui.status.textContent = '正确';
-        playSfx('correct');
-        flashOk(() => {
-          ui.answerInput.value = '';
-          nextTurn();
-          ui.status.textContent = '';
-        });
-      }
-
-      // ========================
-      // ui/render
-      // ========================
-      const ui = {
-        meta: document.getElementById('meta'),
-        question: document.getElementById('question'),
-        hint: document.getElementById('hint'),
-        subHint: document.getElementById('subHint'),
-        answerInput: document.getElementById('answerInput'),
-        submitBtn: document.getElementById('submitBtn'),
-        pauseBtn: document.getElementById('pauseBtn'),
-        status: document.getElementById('status'),
-        gameOverBox: document.getElementById('gameOverBox'),
-      };
-
-      function renderMeta() {
-        ui.meta.innerHTML = `
-          <span>题号：<span class="tag">${state.qIndex || 0}</span></span>
-          <span>连续正确：<span class="tag">${state.streak}</span></span>
-          <span>最高纪录：<span class="tag">${state.best}</span></span>
-        `;
-      }
-
-      function renderQuestion() {
-        ui.question.textContent = state.currentQ ? state.currentQ.text : '-';
-      }
-
-      function renderInputArea() {
-        const noPending = !state.pendingQ;
-        const disabled = noPending || !state.running || state.paused;
-        ui.answerInput.disabled = disabled;
-        ui.submitBtn.disabled = disabled;
-
-        if (!state.running) {
-          ui.subHint.textContent = '本局结束，点击“再来一局”开始新的挑战。';
-        } else if (state.paused) {
-          ui.subHint.textContent = '已暂停';
-        } else if (noPending) {
-          ui.subHint.textContent = '先看题，下一题开始输入上一题答案';
-        } else {
-          ui.subHint.textContent = `回答上一题（第 ${state.qIndex - 1} 题）的答案`;
-        }
-      }
-
-      function renderHint() {
-        if (!state.running) {
-          ui.hint.textContent = '规则：你永远回答上一题的答案。';
-          return;
-        }
-        if (!state.pendingQ) {
-          ui.hint.textContent = '第 1 题仅展示，不作答。';
-        } else {
-          ui.hint.textContent = '当前看到的是新题，你输入的是上一题答案。';
-        }
-      }
-
-      function renderPauseButton() {
-        ui.pauseBtn.textContent = state.paused ? '继续' : '暂停';
-        ui.pauseBtn.disabled = !state.running;
-      }
-
-      function renderGameOver(userInputRaw = null) {
-        if (state.running) {
-          ui.gameOverBox.innerHTML = '';
-          return;
-        }
-
-        const recent = state.history.slice(-5).reverse();
-        const failed = state.history[state.history.length - 1];
-        const pending = failed?.pending;
-
-        ui.gameOverBox.innerHTML = `
-          <div class="game-over">
-            <h3>Game Over</h3>
-            <p>你输入：<span class="tag">${escapeHtml(String(userInputRaw ?? ''))}</span></p>
-            <p>正确答案：<span class="tag">${pending ? pending.answer : '-'}</span></p>
-            <p>本次连续正确：<span class="tag">${state.streak}</span> ｜ 历史最高：<span class="tag">${state.best}</span></p>
-            <button id="restartBtn" class="btn primary">再来一局</button>
-            <div class="review">
-              <strong>最近 5 条记录</strong>
-              <ul>
-                ${recent.map((item) => `
-                  <li>
-                    回答题：${item.pending ? item.pending.text : '无'}；
-                    正确：${item.pending ? item.pending.answer : '-'}；
-                    输入：${escapeHtml(String(item.userInput))}；
-                    结果：${item.correct ? '✅' : '❌'}
-                  </li>
-                `).join('') || '<li>暂无</li>'}
-              </ul>
-            </div>
-          </div>
-        `;
-
-        const restartBtn = document.getElementById('restartBtn');
-        if (restartBtn) restartBtn.onclick = startGame;
-      }
-
-      function render() {
-        renderMeta();
-        renderQuestion();
-        renderHint();
-        renderInputArea();
-        renderPauseButton();
-        renderGameOver();
-      }
-
-      function focusInputIfEnabled() {
-        if (!ui.answerInput.disabled) ui.answerInput.focus();
-      }
-
-      function flashOk(done) {
-        ui.answerInput.classList.add('flash-ok');
-        setTimeout(() => {
-          ui.answerInput.classList.remove('flash-ok');
-          done?.();
-        }, 100);
-      }
-
-      function flashBad() {
-        ui.answerInput.classList.remove('flash-bad');
-        void ui.answerInput.offsetWidth;
-        ui.answerInput.classList.add('flash-bad');
-      }
-
       function escapeHtml(s) {
-        return s.replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+        return String(s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
       }
 
-      // ========================
-      // handlers（输入与提交）
-      // ========================
-      function sanitizeInput(raw) {
-        let s = raw.replace(/\s+/g, '');
-        s = s.replace(/[^0-9-]/g, '');
-        if (!CONFIG.allowNegativeInput) s = s.replace(/-/g, '');
-        else s = s.replace(/(?!^)-/g, '');
-        return s;
-      }
-
-      ui.answerInput.addEventListener('input', (e) => {
-        const clean = sanitizeInput(e.target.value);
-        if (clean !== e.target.value) e.target.value = clean;
-      });
-
-      ui.submitBtn.addEventListener('click', submitAnswer);
-      ui.answerInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') submitAnswer();
-      });
-
-      ui.pauseBtn.addEventListener('click', () => {
-        if (!state.running) return;
-        state.paused = !state.paused;
-        ui.status.textContent = state.paused ? '已暂停' : '';
-        render();
-        focusInputIfEnabled();
-      });
-
-      // 题目推进由“答对后”触发；没有 setInterval 自动刷题
-      // 音效 hook：后续可接入真实音频
-      function playSfx(type) {
-        void type;
-      }
-
-      // init
-      startGame();
       render();
     </script>
   </body>
