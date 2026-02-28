@@ -26,7 +26,6 @@
         overflow: hidden;
       }
       button { font-family: inherit; }
-
       .page { width: 100%; height: 100%; position: relative; }
 
       .home {
@@ -71,7 +70,7 @@
         box-shadow: 0 12px 24px rgba(254, 245, 0, 0.28);
       }
 
-      .difficulty-page { padding: 20px clamp(16px, 4vw, 40px); overflow-y: auto; }
+      .list-page { padding: 20px clamp(16px, 4vw, 40px); overflow-y: auto; }
       .top-row { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
       .back {
         border: 1px solid #3b3b3b;
@@ -81,9 +80,9 @@
         padding: 8px 12px;
         cursor: pointer;
       }
-      .difficulty-title { margin: 8px 0 4px; font-size: clamp(28px, 5vw, 42px); font-weight: 900; }
-      .difficulty-sub { color: var(--text-sub); margin-bottom: 20px; }
-      .cards { display: grid; gap: 14px; max-width: 860px; margin: 0 auto; padding-bottom: 28px; }
+      .list-title { margin: 8px 0 4px; font-size: clamp(28px, 5vw, 42px); font-weight: 900; }
+      .list-sub { color: var(--text-sub); margin-bottom: 20px; }
+      .cards { display: grid; gap: 14px; max-width: 960px; margin: 0 auto; padding-bottom: 28px; }
       .card {
         display: grid;
         grid-template-columns: 1fr auto;
@@ -103,6 +102,7 @@
       .card h3 { margin: 0 0 6px; font-size: 22px; }
       .card p { margin: 0; color: #b8b8b8; font-size: 14px; }
       .count { font-size: 13px; color: var(--text-sub); margin-top: 6px; }
+      .tag { font-size: 12px; color: #111; background: var(--accent); border-radius: 999px; padding: 4px 10px; font-weight: 700; }
       .icon {
         width: 42px; height: 42px; border-radius: 12px;
         display: grid; place-items: center;
@@ -152,7 +152,7 @@
         border-radius: 10px;
         display: grid;
         place-items: center;
-        font-weight: 800;
+        font-weight: 900;
         cursor: pointer;
         transition: transform 0.12s ease, background 0.16s ease, border-color 0.16s ease;
       }
@@ -254,6 +254,13 @@
 
     <script type="text/babel">
       const { useEffect, useMemo, useState } = React;
+
+      const trainingProjects = [
+        { id: 'schulte', name: '舒尔特表', en: 'Schulte Table', color: '#00c853', desc: '数字/字母/诗词专注训练', status: 'available' },
+        { id: 'stroop', name: 'Stroop训练', en: 'Stroop Training', color: '#2979ff', desc: '颜色与词义冲突抑制训练', status: 'coming-soon' },
+        { id: 'nback-math', name: '1-back加减法训练', en: '1-back Math', color: '#d500f9', desc: '工作记忆 + 运算反应训练', status: 'coming-soon' },
+        { id: 'seq-memory', name: '顺序工作记忆训练', en: 'Sequence Working Memory', color: '#ff6d00', desc: '顺序记忆与更新能力训练', status: 'coming-soon' },
+      ];
 
       // 为后续扩展其他训练项目预留的模块化入口
       const trainingModules = {
@@ -406,15 +413,35 @@
         );
       }
 
+      function ProjectPage({ onBack, onSelectProject }) {
+        return (
+          <div className="page list-page">
+            <div className="top-row"><button className="back" onClick={onBack}>← 返回</button></div>
+            <h2 className="list-title">训练项目选择</h2>
+            <div className="list-sub">请选择要进入的训练项目</div>
+            <div className="cards">
+              {trainingProjects.map((p) => (
+                <div key={p.id} className="card" onClick={() => onSelectProject(p)}>
+                  <div>
+                    <h3 style={{ color: p.color }}>{p.name} <span style={{ color: '#a8a8a8', fontSize: 14 }}> / {p.en}</span></h3>
+                    <p>{p.desc}</p>
+                    <div className="count">{p.status === 'available' ? '已开放训练' : '开发中，敬请期待'}</div>
+                  </div>
+                  {p.status === 'available' ? <div className="icon" style={{ color: p.color }}>GO</div> : <span className="tag">即将上线</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       function DifficultyPage({ module, onSelectDifficulty, onBack }) {
         return (
-          <div className="page difficulty-page">
-            <div className="top-row">
-              <button className="back" onClick={onBack}>← 返回</button>
-            </div>
-            <h2 className="difficulty-title">{module.title}</h2>
-            <div className="difficulty-sub">请选择训练难度</div>
-            <div className="cards">
+          <div className="page list-page">
+            <div className="top-row"><button className="back" onClick={onBack}>← 返回</button></div>
+            <h2 className="list-title">{module.title}</h2>
+            <div className="list-sub">请选择训练难度</div>
+            <div className="cards" style={{ maxWidth: 860 }}>
               {module.difficulties.map((d) => (
                 <div key={d.id} className="card" onClick={() => onSelectDifficulty(d)}>
                   <div>
@@ -440,6 +467,7 @@
         const [elapsed, setElapsed] = useState(0);
         const [showPrepare, setShowPrepare] = useState(true);
         const [showResult, setShowResult] = useState(false);
+        const [showUnfinished, setShowUnfinished] = useState(false);
 
         const currentTraining = difficulty.trainings[index];
 
@@ -453,6 +481,7 @@
           setElapsed(0);
           setShowPrepare(true);
           setShowResult(false);
+          setShowUnfinished(false);
         }, [index, difficulty]);
 
         useEffect(() => {
@@ -469,6 +498,7 @@
         }, [showPrepare]);
 
         const target = gridData?.sequence[targetIdx] || null;
+        const isFinished = !!gridData && targetIdx >= gridData.sequence.length;
 
         const targetDisplay = useMemo(() => {
           if (!gridData || target == null) return '-';
@@ -479,7 +509,7 @@
           return target;
         }, [target, gridData, currentTraining]);
 
-        function stopAndShow() {
+        function completeTraining() {
           if (running) {
             setElapsed(Date.now() - startAt);
             setRunning(false);
@@ -499,7 +529,7 @@
           const nextIndex = targetIdx + 1;
           if (nextIndex >= gridData.sequence.length) {
             setTargetIdx(nextIndex);
-            setTimeout(stopAndShow, 120);
+            setTimeout(completeTraining, 100);
           } else {
             setTargetIdx(nextIndex);
           }
@@ -513,7 +543,7 @@
           }
         }
 
-        const cellFont = `clamp(18px, ${Math.floor(44 / difficulty.gridSize)}vw, ${Math.floor(145 / difficulty.gridSize)}px)`;
+        const cellFont = `clamp(22px, ${Math.floor(58 / difficulty.gridSize)}vw, ${Math.floor(190 / difficulty.gridSize)}px)`;
 
         return (
           <div className="page training-page">
@@ -538,10 +568,7 @@
                       <div
                         key={cell.id}
                         className={`cell ${doneSet.has(cell.id) ? 'done' : ''}`}
-                        style={{
-                          fontSize: cellFont,
-                          color: currentTraining.colored ? COLOR_POOL[i % COLOR_POOL.length] : '#ffffff',
-                        }}
+                        style={{ fontSize: cellFont, color: currentTraining.colored ? COLOR_POOL[i % COLOR_POOL.length] : '#ffffff' }}
                         onClick={() => handleCellClick(cell)}
                       >
                         {cell.label}
@@ -558,9 +585,11 @@
                   style={{ background: running ? 'var(--danger)' : 'var(--success)' }}
                   onClick={() => {
                     if (running) {
-                      stopAndShow();
-                    } else {
-                      setStartAt(Date.now());
+                      setElapsed(Date.now() - startAt);
+                      setRunning(false);
+                      if (!isFinished) setShowUnfinished(true);
+                    } else if (!isFinished) {
+                      setStartAt(Date.now() - elapsed);
                       setRunning(true);
                     }
                   }}
@@ -581,18 +610,24 @@
                   <h2>准备好了吗？</h2>
                   <p>
                     训练要求：
-                    {currentTraining.type === 'number' && (
-                      <>
-                        按 <span className="highlight">{currentTraining.mode === 'asc' ? `${currentTraining.min}-${currentTraining.max}` : `${currentTraining.max}-${currentTraining.min}`}</span>
-                        的 <span className="highlight">{currentTraining.mode === 'asc' ? '升序' : '降序'}</span> 查表。
-                      </>
-                    )}
+                    {currentTraining.type === 'number' && <><span className="highlight"> {currentTraining.mode === 'asc' ? `${currentTraining.min}-${currentTraining.max}` : `${currentTraining.max}-${currentTraining.min}`}</span> <span className="highlight">{currentTraining.mode === 'asc' ? '升序' : '降序'}</span> 查表。</>}
                     {currentTraining.type === 'letter' && <>按 <span className="highlight">A-Y</span> 的 <span className="highlight">顺序</span> 查表。</>}
                     {currentTraining.type === 'poem' && <>按照诗句顺序查找 <span className="highlight">{currentTraining.poemTitle}</span> 目标字。</>}
                   </p>
                   {currentTraining.type === 'poem' && <div className="poem-full">原文：{currentTraining.poemFull}</div>}
                   <div className="tip">点击任意键继续 / 点击下方按钮继续</div>
                   <button className="next-btn" onClick={() => setShowPrepare(false)}>进入训练</button>
+                </div>
+              </div>
+            )}
+
+            {showUnfinished && (
+              <div className="overlay" onClick={() => setShowUnfinished(false)}>
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <h2 style={{ marginTop: 0 }}>尚未完成</h2>
+                  <p>当前训练还没有完成，不能直接结束本题。</p>
+                  <p>请继续点击目标项，全部完成后会自动结算。</p>
+                  <button className="next-btn" onClick={() => setShowUnfinished(false)}>继续训练</button>
                 </div>
               </div>
             )}
@@ -613,22 +648,34 @@
 
       function App() {
         const [currentPage, setCurrentPage] = useState('home');
-        const [selectedModule] = useState(trainingModules.schulte);
+        const [selectedProject, setSelectedProject] = useState(null);
         const [selectedDifficulty, setSelectedDifficulty] = useState(null);
 
-        if (currentPage === 'home') {
-          return <HomePage onSelectTraining={() => setCurrentPage('difficulty')} />;
+        if (currentPage === 'home') return <HomePage onSelectTraining={() => setCurrentPage('project')} />;
+
+        if (currentPage === 'project') {
+          return (
+            <ProjectPage
+              onBack={() => setCurrentPage('home')}
+              onSelectProject={(project) => {
+                if (project.status !== 'available') return;
+                setSelectedProject(project.id);
+                setCurrentPage('difficulty');
+              }}
+            />
+          );
         }
 
         if (currentPage === 'difficulty') {
+          const module = trainingModules[selectedProject];
           return (
             <DifficultyPage
-              module={selectedModule}
+              module={module}
               onSelectDifficulty={(d) => {
                 setSelectedDifficulty(d);
                 setCurrentPage('training');
               }}
-              onBack={() => setCurrentPage('home')}
+              onBack={() => setCurrentPage('project')}
             />
           );
         }
