@@ -521,6 +521,7 @@
               color: '#d500f9',
               gridSize: 1,
               view: { mode: '2back', durationSec: 0, maxResult: 10, kBack: 2 },
+              status: 'coming-soon',
               trainings: [{ id: 'nb-2back-1', label: '2-back' }],
             },
           ],
@@ -708,13 +709,13 @@
             <div className="list-sub">请选择训练难度</div>
             <div className="cards" style={{ maxWidth: 860 }}>
               {module.difficulties.map((d) => (
-                <div key={d.id} className="card" onClick={() => onSelectDifficulty(d)}>
+                <div key={d.id} className="card" onClick={() => d.status !== 'coming-soon' && onSelectDifficulty(d)}>
                   <div>
                     <h3 style={{ color: d.color }}>{d.name}</h3>
                     <p>{module.id === 'stroop' ? `${d.name} Stroop 训练` : module.id === 'nback-math' ? `${d.name} 算术工作记忆` : `${d.gridSize} × ${d.gridSize} 表格 · ${d.name}认知训练`}</p>
-                    <div className="count">{d.trainings.length} 个训练项目</div>
+                    <div className="count">{d.status === 'coming-soon' ? '敬请期待' : `${d.trainings.length} 个训练项目`}</div>
                   </div>
-                  <div className="icon" style={{ color: d.color }}>{d.gridSize}</div>
+                  {d.status === 'coming-soon' ? <span className="tag">敬请期待</span> : <div className="icon" style={{ color: d.color }}>{d.gridSize}</div>}
                 </div>
               ))}
             </div>
