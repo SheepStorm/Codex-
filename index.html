@@ -3,968 +3,524 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brain Training - 大脑训练</title>
+    <title>加减法 · 1-back 算术</title>
     <style>
       :root {
-        --bg: #1d1d1d;
-        --accent: #fef500;
-        --text-main: #ffffff;
-        --text-sub: #888888;
-        --success: #00c853;
-        --danger: #e92222;
-        --basic: #00c853;
-        --advanced: #2979ff;
-        --pro: #d500f9;
+        --bg: #111318;
+        --panel: #191d26;
+        --panel-2: #1f2430;
+        --text: #f5f7ff;
+        --muted: #9aa3b2;
+        --accent: #ffd84d;
+        --ok: #23c16b;
+        --bad: #ef4444;
+        --line: #2f3747;
       }
 
       * { box-sizing: border-box; }
+      html, body { height: 100%; }
       body {
         margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-          "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-        color: var(--text-main);
-        background: var(--bg);
-        min-height: 100vh;
+        background: radial-gradient(circle at 20% -10%, #2a3040 0, var(--bg) 45%);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
       }
-      #root { min-height: 100vh; }
 
-      .page {
-        min-height: 100vh;
+      .app {
+        min-height: 100%;
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+      }
+
+      .top, .bottom {
+        display: grid;
+        place-items: center;
         padding: 20px;
       }
 
-      .home-page {
+      .top {
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, #1a1f2b 0%, #131824 100%);
+      }
+
+      .q-wrap { text-align: center; max-width: 900px; width: 100%; }
+      .meta {
         display: flex;
-        align-items: center;
         justify-content: center;
-        text-align: center;
-        background: radial-gradient(circle at center, #2a2a00 0%, #1d1d1d 70%);
+        gap: 18px;
+        flex-wrap: wrap;
+        color: var(--muted);
+        font-size: 14px;
+        margin-bottom: 14px;
       }
 
-      .brain-wrap { margin-bottom: 22px; animation: float 2.4s ease-in-out infinite; }
-      @keyframes float {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-      }
-
-      .brain-icon {
-        width: 130px;
-        height: 130px;
-        filter: drop-shadow(0 0 12px rgba(254, 245, 0, 0.5));
-      }
-
-      .home-title {
-        margin: 0;
-        line-height: 0.95;
-        font-size: clamp(38px, 7vw, 72px);
+      .question {
+        font-size: clamp(56px, 12vw, 120px);
         font-weight: 900;
-        letter-spacing: 0.08em;
-      }
-      .home-title span { color: var(--accent); }
-
-      .subtitle {
-        margin: 18px 0 28px;
-        color: var(--text-sub);
-        font-size: clamp(15px, 2.2vw, 20px);
+        letter-spacing: 0.05em;
+        margin: 10px 0;
       }
 
-      .cta-btn {
-        border: 0;
-        border-radius: 999px;
-        background: var(--accent);
-        color: #151515;
-        font-size: 16px;
-        font-weight: 700;
-        padding: 14px 24px;
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(254, 245, 0, 0.25); }
-      .difficulty-page {
-        max-width: 760px;
-        margin: 0 auto;
-        padding-top: 20px;
+      .hint {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: clamp(14px, 2.2vw, 18px);
       }
 
-      .top-nav {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 20px;
-      }
-      .back-btn {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        border: 1px solid #333;
-        background: #242424;
-        color: #fff;
-        font-size: 20px;
-        cursor: pointer;
-      }
+      .bottom { background: var(--panel); }
 
-      .page-title { font-size: clamp(32px, 6vw, 48px); font-weight: 900; margin: 8px 0; }
-      .page-subtitle { color: var(--text-sub); margin: 0 0 26px; }
-
-      .difficulty-list { display: flex; flex-direction: column; gap: 14px; }
-      .difficulty-card {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 16px;
-        background: #242424;
-        border: 1px solid #313131;
+      .input-card {
+        width: min(760px, 100%);
+        background: var(--panel-2);
+        border: 1px solid var(--line);
         border-radius: 16px;
         padding: 18px;
-        cursor: pointer;
-        transition: transform 0.2s ease, border-color 0.2s ease;
       }
-      .difficulty-card:hover { transform: scale(1.015); border-color: var(--accent); }
-      .difficulty-icon {
-        width: 46px;
-        height: 46px;
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .sub-hint {
+        text-align: center;
+        color: var(--muted);
+        margin: 0 0 10px;
+        font-size: 14px;
+      }
+
+      .answer {
+        width: min(260px, 70vw);
+        height: 56px;
         border-radius: 12px;
-        display: grid;
-        place-items: center;
-        font-size: 22px;
-        font-weight: 800;
-      }
-      .difficulty-card h3 { margin: 0 0 6px; }
-      .difficulty-card p { margin: 0; color: var(--text-sub); font-size: 14px; }
-      .count-tag { color: var(--text-sub); font-size: 13px; }
-
-      .training-page { padding: 12px 24px 24px; position: relative; }
-      .training-header {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 18px;
-      }
-      .train-info h3 { margin: 0; font-size: 20px; }
-      .train-info p { margin: 2px 0 0; color: var(--text-sub); font-size: 14px; }
-      .progress-dots { display: flex; gap: 6px; }
-      .dot { width: 9px; height: 9px; border-radius: 50%; background: #3a3a3a; }
-      .dot.active { background: var(--accent); }
-
-      .training-main {
-        min-height: calc(100vh - 110px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding-right: 110px;
-      }
-
-      .grid {
-        --size: min(88vw, calc(100vh - 190px));
-        width: var(--size);
-        height: var(--size);
-        max-width: 95vw;
-        max-height: calc(100vh - 160px);
-        display: grid;
-        gap: clamp(4px, 0.6vw, 8px);
-      }
-      .grid-cell {
-        background: #111;
-        border: 1px solid #343434;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        user-select: none;
-        cursor: pointer;
-        transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
-      }
-      .grid-cell:hover { transform: scale(1.03); }
-      .grid-cell.done { background: var(--success) !important; color: #fff !important; }
-      .grid-cell.inactive { cursor: default; opacity: 0.85; }
-
-      .target-info {
-        margin-top: 18px;
-        color: var(--text-main);
-        font-size: 18px;
+        border: 2px solid #4a566f;
+        background: #0f131c;
+        color: var(--text);
+        text-align: center;
+        font-size: 28px;
         font-weight: 700;
+        outline: none;
       }
-      .target-info span { color: var(--accent); }
 
-      .start-stop {
-        position: fixed;
-        right: 24px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 84px;
-        height: 84px;
-        border-radius: 50%;
-        border: 3px solid rgba(255,255,255,0.25);
-        color: #fff;
-        font-weight: 800;
-        cursor: pointer;
-        box-shadow: 0 14px 35px rgba(0, 0, 0, 0.45);
-        transition: transform 0.2s ease;
-      }
-      .start-stop:hover { transform: translateY(-50%) scale(1.04); }
+      .answer:disabled { opacity: 0.55; cursor: not-allowed; }
+      .answer.flash-ok { border-color: var(--ok); box-shadow: 0 0 0 3px rgba(35,193,107,0.15); }
+      .answer.flash-bad { border-color: var(--bad); animation: shake 0.2s linear; }
 
-      .modal-mask {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        display: grid;
-        place-items: center;
-        padding: 20px;
-        animation: fadeIn 0.22s ease;
-        z-index: 99;
-      }
-      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes shake {
-        0%,100% { transform: translateX(0); }
         25% { transform: translateX(-3px); }
         75% { transform: translateX(3px); }
       }
-      .modal-card {
-        width: min(520px, 100%);
-        border-radius: 20px;
-        background: #232323;
-        border: 1px solid #3a3a3a;
-        padding: 24px;
-        text-align: center;
-      }
-      .modal-icon {
-        width: 66px;
-        height: 66px;
-        margin: 0 auto 10px;
-        border-radius: 50%;
-        background: rgba(254, 245, 0, 0.12);
-        color: var(--accent);
-        display: grid;
-        place-items: center;
-        font-size: 32px;
-      }
-      .modal-card h2 { margin: 4px 0 12px; font-size: 36px; font-weight: 900; }
-      .modal-card p { color: #d0d0d0; line-height: 1.65; }
-      .hl { color: var(--accent); font-weight: 800; }
-      .modal-tip { margin-top: 18px; font-size: 13px; color: var(--text-sub); }
-      .modal-actions {
-        margin-top: 16px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .result-btn {
-        min-width: 168px;
-        padding: 10px 16px;
-        border-radius: 14px;
-        font-size: 15px;
-        font-weight: 700;
-      }
-      .rect-outline-btn {
-        width: auto !important;
-        height: auto !important;
-        padding: 10px 14px;
+
+      .btn {
+        height: 56px;
+        padding: 0 16px;
         border-radius: 12px;
-      }
-
-
-      .project-page { max-width: 780px; margin: 0 auto; padding-top: 20px; }
-      .project-list { display: flex; flex-direction: column; gap: 14px; }
-      .stroop-stage {
-        min-height: calc(100vh - 120px);
-        background: linear-gradient(180deg, #16000f, #0e000a);
-        border: 1px solid #2a1320;
-        border-radius: 18px;
-        padding: 18px;
-        position: relative;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .stroop-stage::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-        background-size: 40px 40px;
-        pointer-events: none;
-      }
-      .stroop-grid {
-        position: relative;
-        z-index: 1;
-        height: 100%;
-        display: grid;
-        gap: clamp(8px, 1.2vw, 14px);
-        align-content: center;
-        justify-content: center;
-      }
-      .stroop-cell {
-        font-weight: 900;
-        font-size: clamp(42px, 6.2vw, 110px);
-        color: rgba(255,255,255,0.12);
-        text-align: center;
-        transition: color 0.2s ease, transform 0.2s ease;
-        min-width: 1.2em;
-      }
-      .stroop-cell.active { transform: scale(1.06); color: currentColor; text-shadow: 0 6px 0 rgba(0,0,0,0.35); }
-      .stroop-pro-wrap {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100%;
-      }
-      .stroop-pro-row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 38px;
-      }
-      .stroop-target-slot {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .stroop-pro-char {
-        font-weight: 900;
-        font-size: clamp(84px, 10vw, 180px);
-        text-shadow: 0 8px 0 rgba(0,0,0,0.4);
-        min-width: 1.1em;
-        text-align: center;
-      }
-      .arrow-top, .arrow-bottom {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 120px;
+        border: 1px solid #4b556a;
+        background: #2d3748;
         color: #fff;
-        opacity: 0.92;
-        text-shadow: 0 0 16px rgba(255,255,255,0.25);
-      }
-      .arrow-top { top: -116px; }
-      .arrow-bottom { bottom: -116px; }
-      .stroop-side-btn {
-        position: fixed;
-        right: 24px;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 12;
+        font-weight: 700;
+        cursor: pointer;
       }
 
-      @media (max-width: 900px) {
-        .start-stop {
-          position: static;
-          transform: none;
-          margin-top: 18px;
-          width: 74px;
-          height: 74px;
-        }
-        .start-stop:hover { transform: scale(1.04); }
-        .training-main { padding-right: 0; }
-        .grid {
-          --size: min(94vw, calc(100vh - 240px));
-          max-height: calc(100vh - 220px);
-        }
+      .btn.primary {
+        border: 0;
+        background: var(--accent);
+        color: #222;
       }
+
+      .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+      .status {
+        margin-top: 10px;
+        text-align: center;
+        color: var(--muted);
+        min-height: 20px;
+      }
+
+      .game-over {
+        margin-top: 14px;
+        border-top: 1px dashed #4b556a;
+        padding-top: 12px;
+      }
+
+      .game-over h3 { margin: 0 0 6px; }
+      .game-over p { margin: 6px 0; color: #d1d7e2; }
+
+      .review {
+        margin-top: 10px;
+        background: #121722;
+        border: 1px solid #313c4f;
+        border-radius: 10px;
+        padding: 8px 10px;
+      }
+
+      .review li {
+        margin: 6px 0;
+        color: #c7d0df;
+        font-size: 14px;
+      }
+
+      .tag { color: var(--accent); font-weight: 700; }
     </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <main class="app">
+      <section class="top">
+        <div class="q-wrap">
+          <div class="meta" id="meta"></div>
+          <div class="question" id="question">-</div>
+          <div class="hint" id="hint"></div>
+        </div>
+      </section>
 
-    <script type="text/babel">
-      const { useEffect, useMemo, useRef, useState } = React;
+      <section class="bottom">
+        <div class="input-card">
+          <p class="sub-hint" id="subHint"></p>
+          <div class="row">
+            <input id="answerInput" class="answer" inputmode="numeric" autocomplete="off" />
+            <button id="submitBtn" class="btn primary">提交</button>
+            <button id="pauseBtn" class="btn">暂停</button>
+          </div>
+          <div class="status" id="status"></div>
+          <div id="gameOverBox"></div>
+        </div>
+      </section>
+    </main>
 
-      const schulteDifficulties = [
-        { id: 'basic', name: '基础', color: '#00c853', size: 4, description: '4×4 表格，数字查找训练', trainings: [
-          { id: 'b1', label: '1-16 升序（纯黑字）', type: 'number', mode: 'asc', max: 16, colorful: false },
-          { id: 'b2', label: '16-1 降序（纯黑字）', type: 'number', mode: 'desc', max: 16, colorful: false },
-          { id: 'b3', label: '1-16 升序（彩色版）', type: 'number', mode: 'asc', max: 16, colorful: true },
-          { id: 'b4', label: '16-1 降序（彩色版）', type: 'number', mode: 'desc', max: 16, colorful: true },
-        ]},
-        { id: 'advanced', name: '进阶', color: '#2979ff', size: 5, description: '5×5 表格，数字+字母训练', trainings: [
-          { id: 'a1', label: '1-25 升序（纯黑字）', type: 'number', mode: 'asc', max: 25, colorful: false },
-          { id: 'a2', label: 'A-Y 顺序（纯黑字）', type: 'letter', mode: 'asc', max: 25, colorful: false },
-          { id: 'a3', label: '25-1 降序（彩色版）', type: 'number', mode: 'desc', max: 25, colorful: true },
-          { id: 'a4', label: 'A-Y 顺序（彩色版）', type: 'letter', mode: 'asc', max: 25, colorful: true },
-        ]},
-        { id: 'pro', name: '高阶', color: '#d500f9', size: 6, description: '6×6 表格，数字+古诗词训练', trainings: [
-          { id: 'p1', label: '1-36 升序（纯黑字）', type: 'number', mode: 'asc', max: 36, colorful: false },
-          { id: 'p2', label: '古诗词找字《相见欢》', type: 'poem', poemKey: 'xjh', colorful: false },
-          { id: 'p3', label: '1-36 升序（彩色版）', type: 'number', mode: 'asc', max: 36, colorful: true },
-          { id: 'p4', label: '36-1 降序（纯黑字）', type: 'number', mode: 'desc', max: 36, colorful: false },
-          { id: 'p5', label: '古诗词找字《村居》', type: 'poem', poemKey: 'cj', colorful: true },
-        ]},
-      ];
-
-      const stroopDifficulties = [
-        { id: 's-basic', name: '基础', color: '#00c853', description: '5×5，每秒切换，5轮训练', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sb${i+1}` })), rows: 5, cols: 5, allowInterference: false, maxNoise: 0, roundRest: 10 },
-        { id: 's-advanced', name: '进阶', color: '#2979ff', description: '5×6，每秒切换，含随机干扰字（≤10）', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sa${i+1}` })), rows: 5, cols: 6, allowInterference: true, maxNoise: 10, roundRest: 10 },
-        { id: 's-pro', name: '高级', color: '#d500f9', description: '3字成组 × 30组/轮，箭头定位，5轮训练', trainings: Array.from({ length: 5 }, (_, i) => ({ id: `sp${i+1}` })), groupsPerRound: 30, allowInterference: true, maxNoise: 10, roundRest: 10, isPro: true },
-      ];
-
-      const wmDifficulties = [
-        { id: 'wm-basic', name: '基础', color: '#00c853', description: '单阶段作答：随机顺序/逆序，5题', enabled: true, trainings: [
-          { id: 'wm-b1', label: '基础：仅1. 复述（数字/字母单序列）', type: 'basic-random', mode: 'random', length: 5, questions: 5, answerType: 'input', phase2Enabled: false },
-        ]},
-        { id: 'wm-advanced', name: '进阶', color: '#2979ff', description: '两阶段作答：随机顺序/逆序，5题', enabled: true, trainings: [
-          { id: 'wm-a1', label: '进阶：1. 复述 + 2. 定位（数字/字母）', type: 'mix', mode: 'random', length: 5, questions: 5, answerType: 'input' },
-        ]},
-        { id: 'wm-pro', name: '高级', color: '#d500f9', description: '即将开放', enabled: false, trainings: [] },
-      ];
-
-      const poemTargets = {
-        xjh: '无言独上西楼月如钩寂寞梧桐深院锁清秋剪不断理还乱是离愁别是一般滋味在心头',
-        cj: '草长莺飞二月天拂堤杨柳醉春烟儿童散学归来早忙趁东风放纸鸢',
-      };
-      const poemFullText = {
-        xjh: '无言独上西楼，月如钩。寂寞梧桐深院锁清秋。剪不断，理还乱，是离愁。别是一般滋味在心头。',
-        cj: '草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。',
+    <script>
+      // ========================
+      // config
+      // ========================
+      const CONFIG = {
+        operandMin: 0,
+        operandMax: 10,
+        restrictResultToRange: true, // 默认 A) 结果限制 0..10
+        allowNegativeInput: false,
+        plusRatio: 0.5,
       };
 
-      const commonChars = '天地人和山水花鸟风云春夏秋冬星河日月明清安乐福喜心静思学行梦志远近高低上下左右东西南北中'.split('');
-      const colorWords = ['白','红','黄','绿','蓝','紫'];
-      const colorMap = { 白:'#ffffff', 红:'#ff1744', 黄:'#ffd600', 绿:'#00e676', 蓝:'#00b0ff', 紫:'#aa00ff' };
-      const noiseWords = ['七','川','非','井','丈','天','文','工','木','中','术','人'];
-      const wmDigits = '123456789'.split('');
-      const wmEmojiPool = ['🏎️','🌍','☕','🌸','📎','🎈','🎯','🎵','🧩','🚀'];
-      const wmItemPool = ['🍎','📦','🔑','📘','🕯️','🧃','⌛','🧸','🪴','🧭'];
-      const wmLetters = 'ABCDEFGHIJKLMNPQRSTUVWXYZ'.split('');
-
-      const shuffle = (arr) => {
-        const copy = [...arr];
-        for (let i = copy.length - 1; i > 0; i -= 1) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy;
+      // ========================
+      // storage（best 读写）
+      // ========================
+      const BEST_KEY = 'math_1back_best';
+      const storage = {
+        loadBest() {
+          const n = Number(localStorage.getItem(BEST_KEY));
+          return Number.isFinite(n) && n >= 0 ? n : 0;
+        },
+        saveBest(best) {
+          localStorage.setItem(BEST_KEY, String(best));
+        },
       };
 
-      const formatTime = (ms) => {
-        const m = Math.floor(ms / 60000);
-        const s = Math.floor((ms % 60000) / 1000);
-        const msPart = Math.floor(ms % 1000).toString().padStart(3, '0');
-        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${msPart}`;
-      };
+      // ========================
+      // generator（出题）
+      // ========================
+      let questionSeqId = 1;
 
-      function buildItems(training, size) {
-        const total = size * size;
-        if (training.type === 'number') {
-          const base = Array.from({ length: training.max }, (_, i) => (i + 1).toString());
-          const sequence = training.mode === 'desc' ? [...base].reverse() : base;
-          return { sequence, grid: shuffle(base) };
-        }
-        if (training.type === 'letter') {
-          const base = Array.from({ length: 25 }, (_, i) => String.fromCharCode(65 + i));
-          return { sequence: base, grid: shuffle(base) };
-        }
-        const targetChars = poemTargets[training.poemKey].split('');
-        const targetSet = new Set(targetChars);
-        const fillerPool = commonChars.filter((char) => !targetSet.has(char));
-        const fill = [];
-        while (targetChars.length + fill.length < total) fill.push(fillerPool[Math.floor(Math.random() * fillerPool.length)]);
-        return { sequence: targetChars, grid: shuffle([...targetChars, ...fill]) };
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
       }
 
-      function getRuleText(training) {
-        if (training.type === 'number') {
-          const range = training.mode === 'asc' ? `1-${training.max}` : `${training.max}-1`;
-          return <span>请按 <span className="hl">{range}</span> 的 <span className="hl">{training.mode === 'asc' ? '升序' : '降序'}</span> 查表。</span>;
-        }
-        if (training.type === 'letter') return <span>请按 <span className="hl">A-Y</span> 的顺序查表。</span>;
-        return <span>请按诗句顺序依次找到《{training.poemKey === 'xjh' ? '相见欢' : '村居'}》中的目标字。<br />原文：<span className="hl">{poemFullText[training.poemKey]}</span></span>;
+      function genAddition() {
+        const a = randInt(CONFIG.operandMin, CONFIG.operandMax);
+        const maxB = CONFIG.restrictResultToRange ? CONFIG.operandMax - a : CONFIG.operandMax;
+        const b = randInt(CONFIG.operandMin, Math.max(CONFIG.operandMin, maxB));
+        return { a, b, op: '+', answer: a + b };
       }
 
-      function makeStroopCells(rows, cols, allowInterference, maxNoise) {
-        const total = rows * cols;
-        const noiseCount = allowInterference ? Math.floor(Math.random() * (maxNoise + 1)) : 0;
-        const noisePositions = new Set(shuffle(Array.from({ length: total }, (_, i) => i)).slice(0, noiseCount));
-        return Array.from({ length: total }, (_, i) => {
-          const word = noisePositions.has(i) ? noiseWords[Math.floor(Math.random() * noiseWords.length)] : colorWords[Math.floor(Math.random() * colorWords.length)];
-          const palette = colorWords.filter((w) => w !== word);
-          const colorWord = palette[Math.floor(Math.random() * palette.length)];
-          return { word, color: colorMap[colorWord] };
+      function genSubtraction() {
+        if (CONFIG.restrictResultToRange) {
+          const b = randInt(CONFIG.operandMin, CONFIG.operandMax);
+          const a = randInt(b, CONFIG.operandMax); // 保证 a-b>=0
+          return { a, b, op: '-', answer: a - b };
+        }
+        const a = randInt(CONFIG.operandMin, CONFIG.operandMax);
+        const b = randInt(CONFIG.operandMin, CONFIG.operandMax);
+        return { a, b, op: '-', answer: a - b };
+      }
+
+      function genQuestion() {
+        const usePlus = Math.random() < CONFIG.plusRatio;
+        const base = usePlus ? genAddition() : genSubtraction();
+        return {
+          id: questionSeqId++,
+          a: base.a,
+          b: base.b,
+          op: base.op,
+          text: `${base.a} ${base.op === '-' ? '−' : '+'} ${base.b} = ?`,
+          answer: base.answer,
+        };
+      }
+
+      // ========================
+      // state（状态机）
+      // ========================
+      const state = {
+        running: false,
+        paused: false,
+        currentQ: null,
+        pendingQ: null,
+        qIndex: 0,
+        streak: 0,
+        best: storage.loadBest(),
+        history: [],
+      };
+
+      function startGame() {
+        state.running = true;
+        state.paused = false;
+        state.streak = 0;
+        state.qIndex = 1;
+        state.currentQ = genQuestion();
+        state.pendingQ = null;
+        state.history = [];
+        render();
+      }
+
+      // 答对后推进：pendingQ 永远指向“上一题”
+      function nextTurn() {
+        state.qIndex += 1;
+        state.pendingQ = state.currentQ;
+        state.currentQ = genQuestion();
+        render();
+        focusInputIfEnabled();
+      }
+
+      function toIntOrNull(v) {
+        const raw = String(v).trim();
+        if (!raw) return null;
+        if (!/^[-]?\d+$/.test(raw)) return null;
+        const num = Number(raw);
+        return Number.isInteger(num) ? num : null;
+      }
+
+      function updateBestIfNeeded() {
+        if (state.streak > state.best) {
+          state.best = state.streak;
+          storage.saveBest(state.best);
+        }
+      }
+
+      function gameOver(userInputRaw) {
+        updateBestIfNeeded();
+        state.running = false;
+        state.paused = false;
+        ui.status.textContent = '你答错了，游戏结束。';
+        flashBad();
+        renderGameOver(userInputRaw);
+        renderMeta();
+      }
+
+      function submitAnswer() {
+        if (!state.running || state.paused) return;
+
+        if (!state.pendingQ) {
+          ui.status.textContent = '还没有要回答的题（第 2 题开始作答）。';
+          return;
+        }
+
+        const raw = ui.answerInput.value;
+        const parsed = toIntOrNull(raw);
+        if (parsed === null) {
+          ui.status.textContent = '请输入整数。';
+          flashBad();
+          return;
+        }
+
+        const correct = parsed === state.pendingQ.answer;
+        state.history.push({
+          qShown: state.currentQ,
+          pending: state.pendingQ,
+          userInput: raw,
+          correct,
+        });
+
+        if (!correct) {
+          gameOver(raw);
+          return;
+        }
+
+        state.streak += 1;
+        ui.status.textContent = '正确';
+        playSfx('correct');
+        flashOk(() => {
+          ui.answerInput.value = '';
+          nextTurn();
+          ui.status.textContent = '';
         });
       }
 
-      function makeStroopGroups(total, allowInterference, maxNoise) {
-        const maxNoisePerRound = Math.min(maxNoise, 10);
-        const noiseSlots = new Set(shuffle(Array.from({ length: total * 3 }, (_, i) => i)).slice(0, allowInterference ? maxNoisePerRound : 0));
-        const groups = [];
-        for (let g = 0; g < total; g += 1) {
-          const chars = Array.from({ length: 3 }, (_, idx) => {
-            const flat = g * 3 + idx;
-            const word = noiseSlots.has(flat) ? noiseWords[Math.floor(Math.random() * noiseWords.length)] : colorWords[Math.floor(Math.random() * colorWords.length)];
-            const palette = colorWords.filter((w) => w !== word);
-            const colorWord = palette[Math.floor(Math.random() * palette.length)];
-            return { word, color: colorMap[colorWord] };
-          });
-          groups.push({ chars, targetIndex: Math.floor(Math.random() * 3) });
+      // ========================
+      // ui/render
+      // ========================
+      const ui = {
+        meta: document.getElementById('meta'),
+        question: document.getElementById('question'),
+        hint: document.getElementById('hint'),
+        subHint: document.getElementById('subHint'),
+        answerInput: document.getElementById('answerInput'),
+        submitBtn: document.getElementById('submitBtn'),
+        pauseBtn: document.getElementById('pauseBtn'),
+        status: document.getElementById('status'),
+        gameOverBox: document.getElementById('gameOverBox'),
+      };
+
+      function renderMeta() {
+        ui.meta.innerHTML = `
+          <span>题号：<span class="tag">${state.qIndex || 0}</span></span>
+          <span>连续正确：<span class="tag">${state.streak}</span></span>
+          <span>最高纪录：<span class="tag">${state.best}</span></span>
+        `;
+      }
+
+      function renderQuestion() {
+        ui.question.textContent = state.currentQ ? state.currentQ.text : '-';
+      }
+
+      function renderInputArea() {
+        const noPending = !state.pendingQ;
+        const disabled = noPending || !state.running || state.paused;
+        ui.answerInput.disabled = disabled;
+        ui.submitBtn.disabled = disabled;
+
+        if (!state.running) {
+          ui.subHint.textContent = '本局结束，点击“再来一局”开始新的挑战。';
+        } else if (state.paused) {
+          ui.subHint.textContent = '已暂停';
+        } else if (noPending) {
+          ui.subHint.textContent = '先看题，下一题开始输入上一题答案';
+        } else {
+          ui.subHint.textContent = `回答上一题（第 ${state.qIndex - 1} 题）的答案`;
         }
-        return groups;
       }
 
-      function makeWMSequence(config) {
-        const pool = config.pool === 'digits' ? wmDigits : config.pool === 'letters' ? wmLetters : [...wmDigits, ...wmLetters];
-        if (config.pool === 'digits') return Array.from({ length: config.len }, () => pool[Math.floor(Math.random() * pool.length)]);
-        if (config.pool === 'letters') return Array.from({ length: config.len }, () => pool[Math.floor(Math.random() * pool.length)]);
-        return Array.from({ length: config.len }, () => pool[Math.floor(Math.random() * pool.length)]);
-      }
-
-      function buildNoAdjacentRepeatSeq(pool, length) {
-        const seq = [];
-        for (let i = 0; i < length; i += 1) {
-          const candidates = i === 0 ? pool : pool.filter((item) => item !== seq[i - 1]);
-          seq.push(candidates[Math.floor(Math.random() * candidates.length)]);
+      function renderHint() {
+        if (!state.running) {
+          ui.hint.textContent = '规则：你永远回答上一题的答案。';
+          return;
         }
-        return seq;
-      }
-
-      function buildWMQuestion(training, questionIndex) {
-        const mode = training.mode === 'random' ? (Math.random() > 0.5 ? 'forward' : 'backward') : training.mode;
-        let originalSeq = [];
-        if (training.type === 'basic-random') {
-          const useDigits = Math.random() > 0.5;
-          originalSeq = buildNoAdjacentRepeatSeq(useDigits ? wmDigits : wmLetters, training.length);
-        } else if (training.type === 'mix') {
-          originalSeq = buildNoAdjacentRepeatSeq([...wmDigits, ...wmLetters], training.length);
-        } else if (training.type === 'digits') {
-          originalSeq = buildNoAdjacentRepeatSeq(wmDigits, training.length);
-        } else if (training.type === 'letters') {
-          originalSeq = buildNoAdjacentRepeatSeq(wmLetters, training.length);
-        } else if (training.type === 'emoji') {
-          originalSeq = shuffle(wmEmojiPool).slice(0, training.length);
-        } else if (training.type === 'emoji-items') {
-          originalSeq = shuffle(wmItemPool).slice(0, training.length);
+        if (!state.pendingQ) {
+          ui.hint.textContent = '第 1 题仅展示，不作答。';
+        } else {
+          ui.hint.textContent = '当前看到的是新题，你输入的是上一题答案。';
         }
-        const n = Math.floor(Math.random() * training.length) + 1;
-        const answerSeqPhase1 = mode === 'backward' ? [...originalSeq].reverse() : [...originalSeq];
-        return {
-          id: `${training.id}-${questionIndex}-${Date.now()}`,
-          mode,
-          type: training.answerType === 'emoji' ? 'emoji' : (training.type === 'letters' ? 'letters' : training.type === 'mix' ? 'mix' : 'digits'),
-          originalSeq,
-          n,
-          answerSeqPhase1,
-          answerPhase2: originalSeq[n - 1],
-        };
       }
 
-      function HomePage({ onStart }) {
-        return <div className="page home-page"><div><div className="brain-wrap"><svg className="brain-icon" viewBox="0 0 120 120" fill="none" stroke="#fef500" strokeWidth="4"><path d="M56 20c-8-6-20-4-27 3-8 7-10 19-5 28-6 6-8 17-3 26 5 10 16 15 26 13 4 8 13 14 23 14"/><path d="M64 20c8-6 20-4 27 3 8 7 10 19 5 28 6 6 8 17 3 26-5 10-16 15-26 13-4 8-13 14-23 14"/><path d="M60 18v84M42 39c11 2 18 10 18 22M78 39c-11 2-18 10-18 22M37 64c11-1 20 6 23 17M83 64c-11-1-20 6-23 17"/></svg></div><h1 className="home-title">BRAIN<br /><span>TRAINING</span></h1><p className="subtitle">通过科学训练释放你大脑的潜能</p><button className="cta-btn" onClick={onStart}>请选择训练项目 →</button></div></div>;
+      function renderPauseButton() {
+        ui.pauseBtn.textContent = state.paused ? '继续' : '暂停';
+        ui.pauseBtn.disabled = !state.running;
       }
 
-      function ProjectPage({ onBack, onSelect }) {
-        const items = [
-          { id: 'schulte', name: '舒尔特表', desc: '经典视觉搜索与注意力训练', color: '#00c853', icon: '⌗' },
-          { id: 'stroop', name: 'Stroop 颜色干扰', desc: '说出颜色而非字义，强化抑制控制', color: '#fef500', icon: '◉' },
-          { id: 'wm', name: '序列工作记忆', desc: '数字/字母顺序与逆序复述训练', color: '#2979ff', icon: '◎' },
-        ];
-        return <div className="page"><div className="project-page"><div className="top-nav"><button className="back-btn" onClick={onBack}>←</button></div><h1 className="page-title">训练项目</h1><p className="page-subtitle">请选择一个训练系统</p><div className="project-list">{items.map((it)=> <div key={it.id} className="difficulty-card" onClick={() => onSelect(it.id)}><div className="difficulty-icon" style={{ background:`${it.color}22`, color: it.color }}>{it.icon}</div><div><h3>{it.name}</h3><p>{it.desc}</p></div><div className="count-tag">进入</div></div>)}</div></div></div>;
-      }
+      function renderGameOver(userInputRaw = null) {
+        if (state.running) {
+          ui.gameOverBox.innerHTML = '';
+          return;
+        }
 
-      function DifficultyPage({ title, subtitle, difficulties, onSelectDifficulty, onBack }) {
-        return <div className="page"><div className="difficulty-page"><div className="top-nav"><button className="back-btn" onClick={onBack}>←</button></div><h1 className="page-title">{title}</h1><p className="page-subtitle">{subtitle}</p><div className="difficulty-list">{difficulties.map((d, i) => <div key={d.id} className="difficulty-card" style={{ opacity: d.enabled === false ? 0.55 : 1, cursor: d.enabled === false ? 'not-allowed' : 'pointer' }} onClick={() => d.enabled === false ? null : onSelectDifficulty(d)}><div className="difficulty-icon" style={{ background:`${d.color}22`, color:d.color }}>{i+1}</div><div><h3>{d.name}{d.enabled === false ? '（即将开放）' : ''}</h3><p>{d.description}</p></div><div className="count-tag">{d.trainings.length || 0} 个训练</div></div>)}</div></div></div>;
-      }
+        const recent = state.history.slice(-5).reverse();
+        const failed = state.history[state.history.length - 1];
+        const pending = failed?.pending;
 
-      function SchulteTrainingPage({ difficulty, onBack, onComplete }) {
-        const [index, setIndex] = useState(0);
-        const [showReady, setShowReady] = useState(true);
-        const [showResult, setShowResult] = useState(false);
-        const [running, setRunning] = useState(false);
-        const [elapsed, setElapsed] = useState(0);
-        const [restLeft, setRestLeft] = useState(0);
-        const [doneSet, setDoneSet] = useState(new Set());
-        const startAtRef = useRef(0);
-        const timerRef = useRef(null);
-        const restRef = useRef(null);
-        const training = difficulty.trainings[index];
-        const { sequence, grid } = useMemo(() => buildItems(training, difficulty.size), [training, difficulty.size]);
-
-        useEffect(() => {
-          setShowReady(true); setShowResult(false); setRunning(false); setElapsed(0); setRestLeft(0); setDoneSet(new Set());
-          if (timerRef.current) clearInterval(timerRef.current);
-          if (restRef.current) clearInterval(restRef.current);
-        }, [training]);
-        useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); if (restRef.current) clearInterval(restRef.current); }, []);
-
-        const currentTarget = sequence[doneSet.size];
-        const toggleTimer = () => {
-          if (showReady || showResult || restLeft > 0) return;
-          if (running) { clearInterval(timerRef.current); setRunning(false); return; }
-          startAtRef.current = performance.now() - elapsed;
-          timerRef.current = setInterval(() => setElapsed(performance.now() - startAtRef.current), 16);
-          setRunning(true);
-        };
-
-        const handleCellClick = (value, i) => {
-          if (!running || value !== currentTarget) return;
-          setDoneSet((prev) => {
-            const next = new Set(prev); next.add(i);
-            if (next.size === sequence.length) {
-              clearInterval(timerRef.current); setRunning(false);
-              if (index < difficulty.trainings.length - 1) {
-                setShowResult(true); setRestLeft(10);
-                restRef.current = setInterval(() => setRestLeft((v) => {
-                  if (v <= 1) { clearInterval(restRef.current); setShowResult(false); setIndex((n) => n + 1); return 0; }
-                  return v - 1;
-                }), 1000);
-              } else {
-                setShowResult(true); setRestLeft(0);
-              }
-            }
-            return next;
-          });
-        };
-
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>{difficulty.name} · {training.label}</h3><p>{running ? `计时中 ${formatTime(elapsed)}` : '点击右侧按钮开始/停止'}</p></div><div className="progress-dots">{difficulty.trainings.map((t, idx) => <span key={t.id} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="training-main"><div className="grid" style={{ gridTemplateColumns:`repeat(${difficulty.size},1fr)` }}>{grid.map((value, i) => { const colors=['#ffffff','#ff1744','#ffd600','#00e676','#00b0ff','#aa00ff']; const color=training.colorful?colors[i%colors.length]:'#ffffff'; const fontSize=`calc(var(--size) / ${difficulty.size} / 2.8)`; return <div key={`${value}-${i}`} className={`grid-cell ${doneSet.has(i)?'done':''} ${running?'':'inactive'}`} style={{ color, fontSize }} onClick={() => handleCellClick(value, i)}>{value}</div>; })}</div><div className="target-info">当前目标: <span>{currentTarget ?? '已完成'}</span> ({Math.min(doneSet.size + 1, sequence.length)}/{sequence.length})</div><button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggleTimer}>{running ? '停止' : '开始'}</button></div>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{getRuleText(training)}</p><div className="modal-tip">点击任意处继续</div></div></div>}{showResult && restLeft > 0 && <div className="modal-mask" onClick={(e) => { if (e.button !== 0) return; if (restRef.current) clearInterval(restRef.current); setShowResult(false); setRestLeft(0); setIndex((n) => n + 1); }}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">✓</div><h2>训练完成</h2><p>本次用时：<span className="hl">{formatTime(elapsed)}</span></p><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p><div className="modal-tip">点击鼠标左键可跳过休息</div></div></div>}{showResult && restLeft === 0 && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>太棒了！</h2><p>您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn result-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
-      }
-
-      function StroopTrainingPage({ difficulty, onBack, onComplete }) {
-        const [index, setIndex] = useState(0);
-        const [showReady, setShowReady] = useState(true);
-        const [running, setRunning] = useState(false);
-        const [elapsed, setElapsed] = useState(0);
-        const [restLeft, setRestLeft] = useState(0);
-        const [showResult, setShowResult] = useState(false);
-        const [activeIndex, setActiveIndex] = useState(0);
-        const [data, setData] = useState([]);
-        const [groupIndex, setGroupIndex] = useState(0);
-        const intervalRef = useRef(null);
-        const timerRef = useRef(null);
-        const restTimerRef = useRef(null);
-
-        const resetRound = () => {
-          setRunning(false); setElapsed(0); setRestLeft(0); setShowReady(true); setShowResult(false); setActiveIndex(0); setGroupIndex(0);
-          if (difficulty.isPro) setData(makeStroopGroups(difficulty.groupsPerRound, difficulty.allowInterference, difficulty.maxNoise));
-          else setData(makeStroopCells(difficulty.rows, difficulty.cols, difficulty.allowInterference, difficulty.maxNoise));
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          if (timerRef.current) clearInterval(timerRef.current);
-          if (restTimerRef.current) clearInterval(restTimerRef.current);
-        };
-
-        useEffect(() => { resetRound(); }, [index, difficulty.id]);
-        useEffect(() => () => { intervalRef.current && clearInterval(intervalRef.current); timerRef.current && clearInterval(timerRef.current); restTimerRef.current && clearInterval(restTimerRef.current); }, []);
-
-        const completeRound = () => {
-          setRunning(false);
-          clearInterval(intervalRef.current);
-          clearInterval(timerRef.current);
-          const rest = difficulty.roundRest;
-          if (index >= difficulty.trainings.length - 1) { setShowResult(true); setRestLeft(0); return; }
-          setRestLeft(rest);
-          restTimerRef.current = setInterval(() => {
-            setRestLeft((v) => {
-              if (v <= 1) { clearInterval(restTimerRef.current); setIndex((n) => n + 1); return 0; }
-              return v - 1;
-            });
-          }, 1000);
-        };
-
-        const toggle = () => {
-          if (showReady || restLeft > 0 || showResult) return;
-          if (running) { clearInterval(intervalRef.current); clearInterval(timerRef.current); setRunning(false); return; }
-          setRunning(true);
-          timerRef.current = setInterval(() => setElapsed((v) => v + 1000), 1000);
-          intervalRef.current = setInterval(() => {
-            if (difficulty.isPro) {
-              setGroupIndex((v) => {
-                if (v + 1 >= difficulty.groupsPerRound) { completeRound(); return v; }
-                return v + 1;
-              });
-            } else {
-              setActiveIndex((v) => {
-                if (v + 1 >= data.length) { completeRound(); return v; }
-                return v + 1;
-              });
-            }
-          }, 1000);
-        };
-
-        const currentGroup = difficulty.isPro ? data[groupIndex] : null;
-        const statusText = restLeft > 0 ? `休息中 ${restLeft}s` : (running ? `进行中 ${Math.floor(elapsed / 1000)}s` : '点击右侧开始/停止');
-
-        return <div className="page training-page"><div className="training-header"><button className="back-btn" onClick={onBack}>←</button><div className="train-info"><h3>Stroop · {difficulty.name} · 第{index + 1}/5轮</h3><p>{statusText}</p></div><div className="progress-dots">{difficulty.trainings.map((_, idx) => <span key={idx} className={`dot ${idx === index ? 'active' : ''}`}/>)}</div></div><div className="stroop-stage">{difficulty.isPro ? <div className="stroop-pro-wrap"><div className="stroop-pro-row">{currentGroup && currentGroup.chars.map((it, idx) => <div key={idx} className="stroop-target-slot"><div className="stroop-pro-char" style={{ color: it.color }}>{it.word}</div>{currentGroup.targetIndex === idx ? <><div className="arrow-top">↓</div><div className="arrow-bottom">↑</div></> : null}</div>)}</div></div> : <div className="stroop-grid" style={{ gridTemplateColumns: `repeat(${difficulty.cols}, minmax(1.1em, auto))` }}>{data.map((item, idx) => <div key={idx} className={`stroop-cell ${idx === activeIndex ? 'active' : ''}`} style={{ color: idx === activeIndex ? item.color : 'rgba(255,255,255,0.12)' }}>{item.word}</div>)}</div>}</div><button className="start-stop stroop-side-btn" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={toggle}>{running ? '停止' : '开始'}</button>{showReady && <div className="modal-mask" onClick={() => setShowReady(false)}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">▶</div><h2>准备好了吗？</h2><p>{difficulty.isPro ? <>每秒出现一组 <span className="hl">3字</span>，共 <span className="hl">30组</span>。请说出随机箭头所指文字的<span className="hl">颜色</span>。</> : <>请在文字亮起时，说出它的<span className="hl">颜色</span>而不是字义。每秒切换下一个。</>}</p><div className="modal-tip">每轮后休息10s，共5轮 · 点击任意处继续</div></div></div>}{restLeft > 0 && <div className="modal-mask" onClick={(e) => { if (e.button !== 0) return; if (restTimerRef.current) clearInterval(restTimerRef.current); setRestLeft(0); setIndex((n) => n + 1); }}><div className="modal-card" onClick={(e)=>e.stopPropagation()}><div className="modal-icon">⏳</div><h2>休息一下</h2><p>请休息<span className="hl">{restLeft}</span>秒后进行下一轮</p><div className="modal-tip">点击鼠标左键可跳过休息</div></div></div>}{showResult && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>训练完成</h2><p>太棒了！您已经完成了本组练习</p><div className="modal-actions"><button className="cta-btn result-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}</div>;
-      }
-
-
-      function WMTrainingPage({ difficulty, onBack, onComplete }) {
-        const [currentTrainingIndex, setCurrentTrainingIndex] = useState(0);
-        const [questionIndex, setQuestionIndex] = useState(0);
-        const [currentQuestion, setCurrentQuestion] = useState(null);
-        const [phase, setPhase] = useState('showing');
-        const [showIndex, setShowIndex] = useState(-1);
-        const [userAnswerPhase1, setUserAnswerPhase1] = useState([]);
-        const [userAnswerPhase2, setUserAnswerPhase2] = useState('');
-        const [attemptsPhase1, setAttemptsPhase1] = useState(0);
-        const [attemptsPhase2, setAttemptsPhase2] = useState(0);
-        const [phase1Feedback, setPhase1Feedback] = useState([]);
-        const [phase2Feedback, setPhase2Feedback] = useState(null);
-        const [showSolution, setShowSolution] = useState(false);
-        const [stats, setStats] = useState({ total: 0, correct: 0, streak: 0, perTraining: {} });
-        const [showDone, setShowDone] = useState(false);
-        const timerRef = useRef(null);
-        const pasteRef = useRef(null);
-
-        const training = difficulty.trainings[currentTrainingIndex];
-
-        const resetForQuestion = (q) => {
-          setCurrentQuestion(q);
-          setPhase('showing');
-          setShowIndex(0);
-          setUserAnswerPhase1([]);
-          setUserAnswerPhase2('');
-          setAttemptsPhase1(0);
-          setAttemptsPhase2(0);
-          setPhase1Feedback(Array(q.answerSeqPhase1.length).fill(null));
-          setPhase2Feedback(null);
-          setShowSolution(false);
-        };
-
-        useEffect(() => {
-          if (!training) return;
-          const q = buildWMQuestion(training, questionIndex);
-          resetForQuestion(q);
-        }, [currentTrainingIndex, questionIndex]);
-
-        useEffect(() => {
-          if (!currentQuestion) return;
-          if (timerRef.current) clearInterval(timerRef.current);
-
-          if (phase === 'showing') {
-            if (training.answerType === 'emoji') {
-              let step = 0;
-              timerRef.current = setInterval(() => {
-                setShowIndex(step);
-                step += 1;
-                if (step >= currentQuestion.originalSeq.length) {
-                  clearInterval(timerRef.current);
-                  setTimeout(() => { setShowIndex(-1); setPhase('phase1'); }, 200);
-                }
-              }, 900);
-            } else {
-              timerRef.current = setInterval(() => {
-                setShowIndex((v) => {
-                  if (v + 1 >= currentQuestion.originalSeq.length) {
-                    clearInterval(timerRef.current);
-                    setPhase('phase1');
-                    return -1;
-                  }
-                  return v + 1;
-                });
-              }, 1000);
-            }
-          }
-          return () => timerRef.current && clearInterval(timerRef.current);
-        }, [phase, currentQuestion?.id]);
-
-        const normalize = (v) => (v || '').trim().toUpperCase();
-
-        const pushEmojiAnswer = (item) => {
-          if (phase !== 'phase1' || training.answerType !== 'emoji') return;
-          setUserAnswerPhase1((prev) => prev.length >= currentQuestion.answerSeqPhase1.length ? prev : [...prev, item]);
-        };
-
-        const undoEmojiAnswer = () => setUserAnswerPhase1((prev) => prev.slice(0, -1));
-
-        const submitPhase1 = () => {
-          const phase2Enabled = training.phase2Enabled !== false;
-          const target = currentQuestion.answerSeqPhase1.map(normalize);
-          const input = training.answerType === 'emoji' ? userAnswerPhase1.map(normalize) : userAnswerPhase1.map(normalize);
-          const fb = target.map((v, i) => (input[i] === undefined || input[i] === '' ? null : (input[i] === v ? 'ok' : 'bad')));
-          setPhase1Feedback(fb);
-          setAttemptsPhase1((v) => v + 1);
-          const allCorrect = target.every((v, i) => input[i] === v);
-          if (allCorrect) {
-            if (phase2Enabled) {
-              setPhase('phase2');
-            } else {
-              setStats((st) => ({
-                total: st.total + 1,
-                correct: st.correct + 1,
-                streak: st.streak + 1,
-                perTraining: { ...st.perTraining, [training.id]: { total: (st.perTraining[training.id]?.total || 0) + 1, correct: (st.perTraining[training.id]?.correct || 0) + 1 } },
-              }));
-              setPhase('phase1_feedback');
-            }
-          } else {
-            if (phase2Enabled) {
-              setPhase('phase1_feedback');
-            } else {
-              setStats((st) => ({
-                total: st.total + 1,
-                correct: st.correct,
-                streak: 0,
-                perTraining: { ...st.perTraining, [training.id]: { total: (st.perTraining[training.id]?.total || 0) + 1, correct: (st.perTraining[training.id]?.correct || 0) } },
-              }));
-              setPhase('phase1_feedback');
-            }
-          }
-        };
-
-        const resetPhase1 = () => {
-          setUserAnswerPhase1([]);
-          setPhase1Feedback(Array(currentQuestion.answerSeqPhase1.length).fill(null));
-          setPhase('phase1');
-        };
-
-
-        const submitPhase2 = () => {
-          const ok = normalize(userAnswerPhase2) === normalize(currentQuestion.answerPhase2);
-          setAttemptsPhase2((v) => v + 1);
-          setPhase2Feedback(ok ? 'ok' : 'bad');
-          setPhase('phase2_feedback');
-          const phase1OK = currentQuestion.answerSeqPhase1.every((v, i) => normalize(userAnswerPhase1[i]) === normalize(v));
-          const whole = phase1OK && ok;
-          setStats((st) => ({
-            total: st.total + 1,
-            correct: st.correct + (whole ? 1 : 0),
-            streak: whole ? st.streak + 1 : 0,
-            perTraining: { ...st.perTraining, [training.id]: { total: (st.perTraining[training.id]?.total || 0) + 1, correct: (st.perTraining[training.id]?.correct || 0) + (whole ? 1 : 0) } },
-          }));
-        };
-
-        const resetPhase2 = () => { setUserAnswerPhase2(''); setPhase2Feedback(null); setPhase('phase2'); };
-
-
-        const isPhase1Complete = () => {
-          if (!currentQuestion) return false;
-          if (training.answerType === 'emoji') return userAnswerPhase1.length === currentQuestion.answerSeqPhase1.length;
-          return currentQuestion.answerSeqPhase1.every((_, idx) => normalize(userAnswerPhase1[idx]) !== '');
-        };
-
-        useEffect(() => {
-          if (phase !== 'phase1' || attemptsPhase1 > 0) return;
-          if (!isPhase1Complete()) return;
-          submitPhase1();
-        }, [phase, userAnswerPhase1, attemptsPhase1, currentQuestion?.id]);
-
-        useEffect(() => {
-          if (phase !== 'phase2' || attemptsPhase2 > 0) return;
-          if (normalize(userAnswerPhase2) === '') return;
-          submitPhase2();
-        }, [phase, userAnswerPhase2, attemptsPhase2, currentQuestion?.id]);
-
-        const nextQuestion = () => {
-          if (questionIndex < training.questions - 1) {
-            setQuestionIndex((v) => v + 1);
-          } else if (currentTrainingIndex < difficulty.trainings.length - 1) {
-            setCurrentTrainingIndex((v) => v + 1);
-            setQuestionIndex(0);
-          } else {
-            setShowDone(true);
-          }
-        };
-
-        if (!currentQuestion) return null;
-
-        const phase1Target = currentQuestion.answerSeqPhase1;
-        const optionPool = training.answerType === 'emoji' ? shuffle([...new Set([...currentQuestion.originalSeq])]) : [];
-
-        const slotStyle = (idx) => {
-          const base = { width: '48px', height: '54px', borderRadius: '10px', border: '2px solid #555', background: '#111', color: '#fff', textAlign: 'center', fontSize: '24px', fontWeight: 800 };
-          if (phase1Feedback[idx] === 'ok') return { ...base, border: '2px solid #00c853' };
-          if (phase1Feedback[idx] === 'bad') return { ...base, border: '2px solid #e92222', animation: 'shake 0.22s ease' };
-          return base;
-        };
-
-        const nIdx = currentQuestion.n - 1;
-
-        return <div className="page training-page">
-          <div className="training-header">
-            <button className="back-btn" onClick={onBack}>←</button>
-            <div className="train-info" aria-live="polite">
-              <h3>序列工作记忆 · {difficulty.name} · 训练{currentTrainingIndex + 1}/{difficulty.trainings.length} · 题{questionIndex + 1}/{training.questions}</h3>
-              {training.phase2Enabled !== false ? <p>请按<span className="hl">{currentQuestion.mode === 'backward' ? '逆序' : '顺序'}</span>复述，并回答<span className="hl">第 {currentQuestion.n} 位</span>（原序列）</p> : null}
+        ui.gameOverBox.innerHTML = `
+          <div class="game-over">
+            <h3>Game Over</h3>
+            <p>你输入：<span class="tag">${escapeHtml(String(userInputRaw ?? ''))}</span></p>
+            <p>正确答案：<span class="tag">${pending ? pending.answer : '-'}</span></p>
+            <p>本次连续正确：<span class="tag">${state.streak}</span> ｜ 历史最高：<span class="tag">${state.best}</span></p>
+            <button id="restartBtn" class="btn primary">再来一局</button>
+            <div class="review">
+              <strong>最近 5 条记录</strong>
+              <ul>
+                ${recent.map((item) => `
+                  <li>
+                    回答题：${item.pending ? item.pending.text : '无'}；
+                    正确：${item.pending ? item.pending.answer : '-'}；
+                    输入：${escapeHtml(String(item.userInput))}；
+                    结果：${item.correct ? '✅' : '❌'}
+                  </li>
+                `).join('') || '<li>暂无</li>'}
+              </ul>
             </div>
-            <div className="progress-dots">{difficulty.trainings.map((_, i) => <span key={i} className={`dot ${i === currentTrainingIndex ? 'active' : ''}`} />)}</div>
           </div>
+        `;
 
-          <div className="stroop-stage">
-            <div className="stroop-pro-wrap"><div className="stroop-pro-char" style={{ color: '#fff' }}>{phase === 'showing' && showIndex >= 0 ? currentQuestion.originalSeq[showIndex] : '•'}</div></div>
-          </div>
-
-          {(phase === 'phase1' || phase === 'phase1_feedback' || phase === 'phase2' || phase === 'phase2_feedback') && <div className="modal-mask"><div className="modal-card" onClick={(e)=>e.stopPropagation()}>
-            {phase.startsWith('phase1') && <>
-              <div className="modal-icon">①</div><h2>1. 复述阶段</h2>
-              <p>请按<span className="hl">{currentQuestion.mode === 'backward' ? '逆序' : '顺序'}</span>完成5位复述。</p>
-              {training.answerType !== 'emoji' ? <>
-                <div className="modal-actions" style={{ flexWrap: 'wrap' }}>
-                  {Array.from({ length: phase1Target.length }, (_, i) => <input key={i} value={userAnswerPhase1[i] || ''} maxLength={1} ref={i===0?pasteRef:null}
-                    onPaste={(e) => { const txt=e.clipboardData.getData('text').toUpperCase().slice(0, phase1Target.length); if(!txt) return; e.preventDefault(); const arr=Array(phase1Target.length).fill(''); txt.split('').forEach((c, idx)=>arr[idx]=c); setUserAnswerPhase1(arr); }}
-                    onChange={(e) => { const v=e.target.value.toUpperCase(); const arr=[...userAnswerPhase1]; arr[i]=v; setUserAnswerPhase1(arr); if(v && i < phase1Target.length - 1){ const next=e.target.parentElement.querySelectorAll('input')[i+1]; next && next.focus(); } }}
-                    onKeyDown={(e) => { if (e.key === 'Backspace' && !userAnswerPhase1[i] && i>0) { const prev=e.target.parentElement.querySelectorAll('input')[i-1]; prev && prev.focus(); } }}
-                    style={slotStyle(i)} />)}
-                </div>
-              </> : <>
-                <div className="modal-actions" style={{ gap:'8px', flexWrap:'wrap' }}>{Array.from({ length: phase1Target.length }, (_, i) => <div key={i} style={{ ...slotStyle(i), display:'grid', placeItems:'center' }}>{userAnswerPhase1[i] || ''}</div>)}</div>
-                <div className="modal-actions" style={{ gap:'8px', flexWrap:'wrap' }}>{optionPool.map((em) => <button key={em} className="back-btn" style={{ width:'56px', height:'56px', fontSize:'28px' }} onClick={() => pushEmojiAnswer(em)}>{em}</button>)}</div>
-                <div className="modal-actions"><button className="back-btn" style={{ width:'auto', height:'auto', padding:'8px 14px' }} onClick={undoEmojiAnswer}>撤销</button></div>
-              </>}
-              <div className="modal-actions">
-                <button className="cta-btn" onClick={submitPhase1}>提交 1.</button>
-                {attemptsPhase1 > 0 && <button className="back-btn rect-outline-btn" onClick={() => { setShowSolution(true); setPhase('phase1_feedback'); }}>查看正确答案</button>}
-                {phase === 'phase1_feedback' && training.phase2Enabled !== false && <button className="back-btn rect-outline-btn" onClick={() => setPhase('phase2')}>进入 2.</button>}
-                {phase === 'phase1_feedback' && <button className="back-btn rect-outline-btn" onClick={resetPhase1}>再来一次</button>}
-                {phase === 'phase1_feedback' && training.phase2Enabled === false && <button className="cta-btn" onClick={nextQuestion}>下一题</button>}
-              </div>
-            </>}
-
-            {training.phase2Enabled !== false && (phase === 'phase2' || phase === 'phase2_feedback') && <>
-              <div className="modal-icon">②</div><h2>2. 定位阶段</h2>
-              <p>请输入<span className="hl">原序列第 {currentQuestion.n} 位</span>（n 基于原始展示序列）</p>
-              {training.answerType !== 'emoji' ? <>
-                <div className="modal-actions" style={{ gap:'8px', flexWrap:'wrap' }}>
-                  {Array.from({ length: currentQuestion.originalSeq.length }, (_, i) => i === nIdx ? <input key={i} value={userAnswerPhase2} maxLength={1}
-                    onChange={(e) => setUserAnswerPhase2(e.target.value.toUpperCase())}
-                    style={{ width:'72px', height:'72px', borderRadius:'12px', border: `2px solid ${phase2Feedback === 'bad' ? '#e92222' : phase2Feedback === 'ok' ? '#00c853' : '#666'}`, background:'#111', color:'#fff', fontSize:'34px', fontWeight:900, textAlign:'center' }} /> : <div key={i} style={{ width:'48px', height:'48px', borderRadius:'10px', border:'1px solid #444', background:'#1a1a1a' }} />)}
-                </div>
-              </> : <>
-                <div className="modal-actions" style={{ gap:'8px', flexWrap:'wrap' }}>{optionPool.map((em) => <button key={em} className="back-btn" style={{ width:'64px', height:'64px', fontSize:'32px', borderColor: phase2Feedback === 'bad' && normalize(userAnswerPhase2) === normalize(em) ? '#e92222' : '#333' }} onClick={() => setUserAnswerPhase2(em)}>{em}</button>)}</div>
-              </>}
-              <div className="modal-actions">
-                <button className="cta-btn" onClick={submitPhase2}>提交 2.</button>
-                {attemptsPhase2 > 0 && <button className="back-btn rect-outline-btn" onClick={() => setShowSolution(true)}>查看正确答案</button>}
-                {phase === 'phase2_feedback' && <button className="back-btn rect-outline-btn" onClick={resetPhase2}>再来一次</button>}
-                {phase === 'phase2_feedback' && <button className="cta-btn" onClick={nextQuestion}>下一题</button>}
-              </div>
-            </>}
-
-            {showSolution && <div style={{ marginTop:'10px', borderTop:'1px solid #444', paddingTop:'10px', textAlign:'left' }}>
-              <div>原始序列：<span className="hl">{currentQuestion.originalSeq.join(' ')}</span></div>
-              <div>1. 正确复述：<span className="hl">{currentQuestion.answerSeqPhase1.join(' ')}</span></div>
-              {training.phase2Enabled !== false && <div>第 {currentQuestion.n} 位答案：<span className="hl">{currentQuestion.answerPhase2}</span></div>}
-            </div>}
-          </div></div>}
-
-          {showDone && <div className="modal-mask"><div className="modal-card"><div className="modal-icon">✓</div><h2>太棒了！</h2><p>您已经完成了本组练习</p><p>正确率：<span className="hl">{stats.correct}/{stats.total}</span>，当前连对：<span className="hl">{stats.streak}</span></p><div className="modal-actions"><button className="cta-btn result-btn" onClick={onComplete}>返回难度选择</button></div></div></div>}
-        </div>;
+        const restartBtn = document.getElementById('restartBtn');
+        if (restartBtn) restartBtn.onclick = startGame;
       }
 
-      function App() {
-        const [page, setPage] = useState('home');
-        const [project, setProject] = useState('schulte');
-        const [selectedDifficulty, setSelectedDifficulty] = useState(null);
-
-        if (page === 'home') return <HomePage onStart={() => setPage('project')} />;
-        if (page === 'project') return <ProjectPage onBack={() => setPage('home')} onSelect={(id) => { setProject(id); setPage('difficulty'); }} />;
-        if (page === 'difficulty') {
-          const list = project === 'schulte' ? schulteDifficulties : project === 'stroop' ? stroopDifficulties : wmDifficulties;
-          const title = project === 'schulte' ? '舒尔特表' : project === 'stroop' ? 'Stroop 训练' : '序列工作记忆';
-          const sub = project === 'wm' ? '基础/进阶已开放，高级后续上线' : '请选择训练难度';
-          return <DifficultyPage title={title} subtitle={sub} difficulties={list} onBack={() => setPage('project')} onSelectDifficulty={(d) => { setSelectedDifficulty(d); setPage('training'); }} />;
-        }
-        if (project === 'schulte') return <SchulteTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
-        if (project === 'stroop') return <StroopTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
-        return <WMTrainingPage difficulty={selectedDifficulty} onBack={() => setPage('difficulty')} onComplete={() => setPage('difficulty')} />;
+      function render() {
+        renderMeta();
+        renderQuestion();
+        renderHint();
+        renderInputArea();
+        renderPauseButton();
+        renderGameOver();
       }
 
-      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+      function focusInputIfEnabled() {
+        if (!ui.answerInput.disabled) ui.answerInput.focus();
+      }
+
+      function flashOk(done) {
+        ui.answerInput.classList.add('flash-ok');
+        setTimeout(() => {
+          ui.answerInput.classList.remove('flash-ok');
+          done?.();
+        }, 100);
+      }
+
+      function flashBad() {
+        ui.answerInput.classList.remove('flash-bad');
+        void ui.answerInput.offsetWidth;
+        ui.answerInput.classList.add('flash-bad');
+      }
+
+      function escapeHtml(s) {
+        return s.replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[ch]));
+      }
+
+      // ========================
+      // handlers（输入与提交）
+      // ========================
+      function sanitizeInput(raw) {
+        let s = raw.replace(/\s+/g, '');
+        s = s.replace(/[^0-9-]/g, '');
+        if (!CONFIG.allowNegativeInput) s = s.replace(/-/g, '');
+        else s = s.replace(/(?!^)-/g, '');
+        return s;
+      }
+
+      ui.answerInput.addEventListener('input', (e) => {
+        const clean = sanitizeInput(e.target.value);
+        if (clean !== e.target.value) e.target.value = clean;
+      });
+
+      ui.submitBtn.addEventListener('click', submitAnswer);
+      ui.answerInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitAnswer();
+      });
+
+      ui.pauseBtn.addEventListener('click', () => {
+        if (!state.running) return;
+        state.paused = !state.paused;
+        ui.status.textContent = state.paused ? '已暂停' : '';
+        render();
+        focusInputIfEnabled();
+      });
+
+      // 题目推进由“答对后”触发；没有 setInterval 自动刷题
+      // 音效 hook：后续可接入真实音频
+      function playSfx(type) {
+        void type;
+      }
+
+      // init
+      startGame();
+      render();
     </script>
   </body>
 </html>
