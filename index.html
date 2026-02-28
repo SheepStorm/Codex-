@@ -244,12 +244,12 @@
         gap: 8px;
       }
       .stroop-arrow {
-        min-height: 28px;
-        font-size: clamp(44px, 6vw, 72px);
-        color: #f1f1f1;
+        min-height: 34px;
+        font-size: clamp(64px, 9vw, 104px);
+        color: #f8f8f8;
         font-weight: 900;
-        text-shadow: 0 0 22px rgba(255, 255, 255, 0.35);
-        line-height: 1;
+        text-shadow: 0 0 26px rgba(255, 255, 255, 0.42);
+        line-height: 0.9;
       }
       .stroop-word {
         width: 100%;
@@ -483,7 +483,7 @@
           const words = Array.from({ length: 3 }, () => createStroopToken(withRandom));
           return {
             words,
-            targetIndex: 1,
+            targetIndex: Math.floor(Math.random() * 3),
           };
         });
       }
@@ -944,17 +944,14 @@
                 {isAdvanced && (
                   <div className="stroop-advanced">
                     <div className="stroop-group">
-                      <div className="stroop-item-wrap"><div className="stroop-arrow"></div></div>
-                      <div className="stroop-item-wrap"><div className="stroop-arrow">↓</div></div>
-                      <div className="stroop-item-wrap"><div className="stroop-arrow"></div></div>
+                      {activeGroup.words.map((_, idx) => (
+                        <div key={`arrow-${idx}`} className="stroop-item-wrap"><div className="stroop-arrow">{idx === activeGroup.targetIndex ? '↓' : ''}</div></div>
+                      ))}
                       {activeGroup.words.map((word, idx) => (
                         <div key={`${word.text}-${idx}`} className="stroop-item-wrap">
                           <div className="stroop-word" style={{ color: word.color }}>{word.text}</div>
                         </div>
                       ))}
-                      <div className="stroop-item-wrap"><div className="stroop-arrow"></div></div>
-                      <div className="stroop-item-wrap"><div className="stroop-arrow">↑</div></div>
-                      <div className="stroop-item-wrap"><div className="stroop-arrow"></div></div>
                     </div>
                   </div>
                 )}
