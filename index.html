@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brain Training - 大脑训练</title>
+  <style>
+    :root {
+      --bg:#1d1d1d; --accent:#fef500; --text:#fff; --sub:#888;
+      --ok:#00c853; --bad:#e92222; --card:#242424; --line:#353535;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif}
+    .page{min-height:100vh;padding:20px}
+    .home{display:grid;place-items:center;text-align:center;background:radial-gradient(circle at center,#2a2a00 0%,#1d1d1d 70%)}
+    .title{font-size:clamp(40px,8vw,80px);line-height:.95;margin:0;font-weight:900;letter-spacing:.08em}
+    .title span{color:var(--accent)}
+    .subtitle{color:var(--sub);margin:18px 0 28px}
+    .btn{border:0;border-radius:999px;background:var(--accent);color:#151515;padding:12px 18px;font-weight:700;cursor:pointer}
+    .ghost{border:1px solid #4a4a4a;background:transparent;color:#eee;border-radius:12px}
+    .top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .back{width:40px;height:40px;border-radius:50%;border:1px solid #3a3a3a;background:#262626;color:#fff;cursor:pointer}
+    .list{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+    .card{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer}
+    .icon{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;font-weight:800}
+    .card p{margin:4px 0 0;color:var(--sub);font-size:14px}
+    .muted{color:var(--sub);font-size:13px}
+
+    .train{max-width:980px;margin:0 auto}
+    .status{color:var(--sub);margin:0 0 10px}
+
+    .schulte-grid{--size:min(88vw,68vh);width:var(--size);height:var(--size);display:grid;gap:6px;margin:0 auto}
+    .cell{display:grid;place-items:center;background:#111;border:1px solid #3a3a3a;border-radius:8px;font-weight:800;cursor:pointer;user-select:none}
+    .cell.done{background:var(--ok)}
+
+    .stroop-stage{min-height:60vh;border:1px solid #2a1320;border-radius:16px;background:linear-gradient(180deg,#16000f,#0e000a);display:grid;place-items:center}
+    .stroop-word{font-size:clamp(54px,10vw,140px);font-weight:900}
+
+    .wm-stage{min-height:58vh;border:1px solid #2a1320;border-radius:16px;background:linear-gradient(180deg,#16000f,#0e000a);display:grid;place-items:center}
+    .wm-big{font-size:clamp(72px,12vw,160px);font-weight:900}
+    .panel{margin-top:12px;background:#232323;border:1px solid #3a3a3a;border-radius:12px;padding:12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .slot{width:50px;height:54px;border-radius:10px;border:2px solid #555;background:#111;color:#fff;text-align:center;font-size:24px;font-weight:800}
+    .slot.ok{border-color:var(--ok)} .slot.bad{border-color:var(--bad)}
+    .slot:disabled{opacity:.8}
+    .result{margin-top:10px;border-top:1px dashed #555;padding-top:10px}
+
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:grid;place-items:center;padding:20px}
+    .modal{background:#232323;border:1px solid #3a3a3a;border-radius:16px;padding:20px;max-width:520px;width:100%;text-align:center}
+  </style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const app = document.getElementById('app');
+
+const state = {
+  page:'home', project:null, difficulty:null,
+  best:{schulte:JSON.parse(localStorage.getItem('best_schulte')||'null')||999999, stroop:Number(localStorage.getItem('best_stroop')||0), wm:Number(localStorage.getItem('best_wm')||0)},
+  runtime:{}
+};
+
+const projects=[
+  {id:'schulte',name:'舒尔特表',desc:'经典视觉搜索与注意力训练',icon:'⌗',color:'#00c853'},
+  {id:'stroop',name:'Stroop 颜色干扰',desc:'说出颜色而非字义，强化抑制控制',icon:'◉',color:'#fef500'},
+  {id:'wm',name:'序列工作记忆',desc:'数字/字母顺序与逆序复述训练',icon:'◎',color:'#2979ff'},
+];
+const difficulties={
+  schulte:[{id:'s1',name:'基础',size:4,desc:'4×4 升序训练'},{id:'s2',name:'进阶',size:5,desc:'5×5 升序训练'}],
+  stroop:[{id:'t1',name:'基础',desc:'每秒切换，5轮',rounds:5,rest:10},{id:'t2',name:'进阶',desc:'每秒切换，5轮（含干扰）',rounds:5,rest:10}],
+  wm:[{id:'w1',name:'基础',desc:'顺序/逆序随机，单阶段',phase2:false},{id:'w2',name:'进阶',desc:'两阶段：复述+定位',phase2:true}],
+};
+
+function render(){ if(state.page==='home') return renderHome(); if(state.page==='project') return renderProject(); if(state.page==='difficulty') return renderDifficulty(); if(state.project==='schulte') return renderSchulte(); if(state.project==='stroop') return renderStroop(); return renderWM(); }
+
+function renderHome(){ app.innerHTML=`<div class="page home"><div><h1 class="title">BRAIN<br><span>TRAINING</span></h1><p class="subtitle">通过科学训练释放你大脑的潜能</p><button class="btn" data-a="to-project">请选择训练项目 →</button></div></div>`; }
+function renderProject(){ app.innerHTML=`<div class="page"><div class="top"><button class="back" data-a="back-home">←</button><h2>训练项目</h2></div><div class="list">${projects.map(p=>`<div class="card" data-a="pick-project" data-id="${p.id}"><div class="icon" style="background:${p.color}22;color:${p.color}">${p.icon}</div><div><strong>${p.name}</strong><p>${p.desc}</p></div><div class="muted">进入</div></div>`).join('')}</div></div>`; }
+function renderDifficulty(){ const list=difficulties[state.project]; app.innerHTML=`<div class="page"><div class="top"><button class="back" data-a="back-project">←</button><h2>${projects.find(p=>p.id===state.project).name} · 难度选择</h2></div><div class="list">${list.map((d,i)=>`<div class="card" data-a="start-training" data-id="${d.id}"><div class="icon" style="background:#2d2d2d">${i+1}</div><div><strong>${d.name}</strong><p>${d.desc}</p></div><div class="muted">开始</div></div>`).join('')}</div></div>`; }
+
+function startSchulte(){ const size=state.difficulty.size; const nums=Array.from({length:size*size},(_,i)=>String(i+1)); const shuffled=[...nums].sort(()=>Math.random()-.5); state.runtime={size,grid:shuffled,target:1,start:performance.now(),done:new Set(),over:false}; }
+function renderSchulte(){ const r=state.runtime; if(!r.grid) startSchulte(); const rt=state.runtime; app.innerHTML=`<div class="page train"><div class="top"><button class="back" data-a="back-difficulty">←</button><h2>舒尔特表 · ${state.difficulty.name}</h2></div><p class="status">当前目标：${rt.target} / ${rt.size*rt.size}</p><div class="schulte-grid" style="grid-template-columns:repeat(${rt.size},1fr)">${rt.grid.map((v,i)=>`<div class="cell ${rt.done.has(i)?'done':''}" data-a="schulte-hit" data-i="${i}">${v}</div>`).join('')}</div></div>${rt.over?`<div class="overlay"><div class="modal"><h3>完成</h3><p>用时：${((rt.end-rt.start)/1000).toFixed(2)}s</p><button class="btn" data-a="restart">再来一局</button></div></div>`:''}`; }
+
+const COLORS=[['红','#ff1744'],['黄','#ffd600'],['绿','#00e676'],['蓝','#00b0ff'],['紫','#aa00ff'],['白','#fff']];
+function startStroop(){ const rounds=state.difficulty.rounds; state.runtime={round:1,idx:0,rounds,rest:0,running:true,over:false,word:mkStroop(),correctCount:0}; if(state.runtime.timer) clearInterval(state.runtime.timer); state.runtime.timer=setInterval(tickStroop,1000); }
+function mkStroop(){ const w=COLORS[Math.floor(Math.random()*COLORS.length)][0]; const candidates=COLORS.filter(c=>c[0]!==w); const c=candidates[Math.floor(Math.random()*candidates.length)][1]; return {word:w,color:c}; }
+function tickStroop(){ const r=state.runtime; if(!r.running) return; if(r.rest>0){ r.rest--; if(r.rest===0){ r.round++; r.idx=0; r.word=mkStroop(); } render(); return; } r.idx++; if(r.idx>=20){ if(r.round>=r.rounds){ r.over=true; r.running=false; clearInterval(r.timer);} else { r.rest=state.difficulty.rest; } } else { r.word=mkStroop(); } render(); }
+function renderStroop(){ if(!state.runtime.word && !state.runtime.over) startStroop(); const r=state.runtime; const status=r.over?'训练完成':(r.rest>0?`休息中 ${r.rest}s（点击可跳过）`:`第 ${r.round}/${r.rounds} 轮 · ${r.idx+1}/20`); app.innerHTML=`<div class="page train"><div class="top"><button class="back" data-a="back-difficulty">←</button><h2>Stroop · ${state.difficulty.name}</h2></div><p class="status">${status}</p><div class="stroop-stage" ${r.rest>0?'data-a="skip-rest"':''}>${r.rest>0?'<div>休息一下（点击跳过）</div>':`<div class="stroop-word" style="color:${r.word?.color||'#fff'}">${r.word?.word||''}</div>`}</div></div>${r.over?`<div class="overlay"><div class="modal"><h3>训练完成</h3><button class="btn" data-a="restart">再来一局</button></div></div>`:''}`; }
+
+const wmPoolDigits='123456789'.split(''); const wmPoolLetters='ABCDEFGHIJKLMNPQRSTUVWXYZ'.split('');
+function genNoRepeat(pool,len){const a=[]; for(let i=0;i<len;i++){const c=i===0?pool:pool.filter(x=>x!==a[i-1]); a.push(c[Math.floor(Math.random()*c.length)]);} return a;}
+function startWM(){ const mode=Math.random()>.5?'forward':'backward'; const base=Math.random()>.5?genNoRepeat(wmPoolDigits,5):genNoRepeat(wmPoolLetters,5); state.runtime={phase:'show',mode,orig:base,target:mode==='backward'?[...base].reverse():base,ans:Array(5).fill(''),showLeft:2,showChar:base.join(''),tick:null,feedback:Array(5).fill(null),phase2Ans:'',phase2Idx:Math.floor(Math.random()*5),over:false,showSolution:false}; if(state.runtime.tick) clearInterval(state.runtime.tick); state.runtime.tick=setInterval(()=>{ const r=state.runtime; if(r.phase==='show'){ r.showLeft--; if(r.showLeft<=0){ r.phase='p1'; clearInterval(r.tick);} render(); } },1000); }
+function validateP1(){ const r=state.runtime; const inA=r.ans.map(v=>String(v||'').trim().toUpperCase()); const tar=r.target.map(v=>String(v).toUpperCase()); r.feedback=tar.map((t,i)=>inA[i]? (inA[i]===t?'ok':'bad'):null); return tar.every((t,i)=>inA[i]===t); }
+function renderWM(){ if(!state.runtime.phase) startWM(); const r=state.runtime; const topChar=r.phase==='show'?r.showChar:'•'; const isBasic=!state.difficulty.phase2; app.innerHTML=`<div class="page train"><div class="top"><button class="back" data-a="back-difficulty">←</button><h2>序列工作记忆 · ${state.difficulty.name}</h2></div><div class="wm-stage"><div class="wm-big">${topChar}</div></div><div class="panel"><p class="status">${r.phase==='show'?`记忆中 ${r.showLeft}s`:`请按${r.mode==='backward'?'逆序':'顺序'}复述`}</p>${r.phase!=='show'?`<div class="row">${Array.from({length:5}).map((_,i)=>`<input class="slot ${r.feedback[i]||''}" data-a="wm-input" data-i="${i}" maxlength="1" value="${r.ans[i]||''}" ${r.phase.startsWith('p2')&&isBasic?'disabled':''}>`).join('')}</div><div class="row" style="margin-top:10px"><button class="btn" data-a="wm-submit1">提交 1.</button>${r.phase!=='p1'?`<button class="btn ghost" data-a="wm-retry1">再来一次</button>`:''}<button class="btn ghost" data-a="wm-solution">查看正确答案</button>${isBasic&&r.phase!=='p1'?'<button class="btn" data-a="restart">下一题</button>':''}</div>`:''}${!isBasic&&r.phase.startsWith('p2')?`<div class="result"><p>2. 请输入原序列第 ${r.phase2Idx+1} 位</p><div class="row"><input class="slot" id="p2" maxlength="1" value="${r.phase2Ans||''}"><button class="btn" data-a="wm-submit2">提交 2.</button><button class="btn ghost" data-a="wm-retry2">再来一次</button><button class="btn" data-a="restart">下一题</button></div></div>`:''}${r.showSolution?`<div class="result">原始序列：${r.orig.join(' ')}<br>1. 正确复述：${r.target.join(' ')}${!isBasic?`<br>第 ${r.phase2Idx+1} 位：${r.orig[r.phase2Idx]}`:''}</div>`:''}</div></div>`; }
+
+app.addEventListener('click',(e)=>{
+  const t=e.target.closest('[data-a]'); if(!t) return; const a=t.dataset.a;
+  if(a==='to-project'){state.page='project';return render();}
+  if(a==='back-home'){state.page='home';return render();}
+  if(a==='pick-project'){state.project=t.dataset.id;state.page='difficulty';return render();}
+  if(a==='back-project'){state.page='project';return render();}
+  if(a==='start-training'){state.difficulty=difficulties[state.project].find(d=>d.id===t.dataset.id); state.page='training'; state.runtime={}; if(state.project==='schulte') startSchulte(); if(state.project==='stroop') startStroop(); if(state.project==='wm') startWM(); return render();}
+  if(a==='back-difficulty'){ if(state.runtime.timer) clearInterval(state.runtime.timer); if(state.runtime.tick) clearInterval(state.runtime.tick); state.runtime={}; state.page='difficulty'; return render(); }
+  if(a==='restart'){ if(state.project==='schulte') startSchulte(); if(state.project==='stroop') startStroop(); if(state.project==='wm') startWM(); return render(); }
+  if(a==='schulte-hit'){ const r=state.runtime; if(r.over) return; const i=Number(t.dataset.i), v=Number(r.grid[i]); if(v!==r.target) return; r.done.add(i); r.target++; if(r.target>r.size*r.size){r.over=true;r.end=performance.now(); if((r.end-r.start)<state.best.schulte){state.best.schulte=r.end-r.start; localStorage.setItem('best_schulte',JSON.stringify(state.best.schulte));}} return render(); }
+  if(a==='skip-rest'){ if(state.runtime.rest>0){state.runtime.rest=0; state.runtime.round++; state.runtime.idx=0; state.runtime.word=mkStroop(); if(state.runtime.round>state.runtime.rounds){state.runtime.over=true;state.runtime.running=false;clearInterval(state.runtime.timer);} return render();} }
+  if(a==='wm-submit1'){ const ok=validateP1(); if(ok){ if(state.difficulty.phase2){state.runtime.phase='p2';} else {state.runtime.phase='p1_done';} } else state.runtime.phase='p1_feedback'; return render(); }
+  if(a==='wm-retry1'){ state.runtime.ans=Array(5).fill(''); state.runtime.feedback=Array(5).fill(null); state.runtime.phase='p1'; return render(); }
+  if(a==='wm-solution'){ state.runtime.showSolution=true; return render(); }
+  if(a==='wm-submit2'){ const ok=String(state.runtime.phase2Ans||'').toUpperCase()===String(state.runtime.orig[state.runtime.phase2Idx]).toUpperCase(); if(!ok){ const p2=document.getElementById('p2'); p2?.classList.add('bad'); } return; }
+  if(a==='wm-retry2'){ state.runtime.phase2Ans=''; return render(); }
+});
+
+app.addEventListener('input',(e)=>{
+  const t=e.target;
+  if(t.dataset.a==='wm-input'){ const i=Number(t.dataset.i); state.runtime.ans[i]=t.value.toUpperCase(); }
+  if(t.id==='p2') state.runtime.phase2Ans=t.value.toUpperCase();
+});
+
+render();
+</script>
+</body>
+</html>
