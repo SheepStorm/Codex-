@@ -415,7 +415,7 @@
               name: '进阶',
               color: '#2979ff',
               gridSize: 6,
-              view: { rows: 5, cols: 6, durationSec: 1, allowRandomChars: true, maxRandomChars: 10 },
+              view: { rows: 6, cols: 6, durationSec: 1, allowRandomChars: true, maxRandomChars: 12 },
               trainings: Array.from({ length: 5 }, (_, i) => ({ id: `si-${i + 1}`, label: `进阶训练 ${i + 1}` })),
             },
             {
@@ -470,7 +470,8 @@
 
       function createStroopIntermediateSet(rows, cols, maxRandomChars) {
         const total = rows * cols;
-        const randomCount = Math.min(maxRandomChars, Math.floor(Math.random() * (maxRandomChars + 1)));
+        const baselineRandomCount = Math.floor(total / 3);
+        const randomCount = Math.min(total, Math.max(baselineRandomCount, maxRandomChars || 0));
         const randomIndices = new Set(shuffle(range(0, total - 1)).slice(0, randomCount));
         return Array.from({ length: total }, (_, idx) => createStroopToken(randomIndices.has(idx)));
       }
@@ -945,12 +946,15 @@
                   <div className="stroop-advanced">
                     <div className="stroop-group">
                       {activeGroup.words.map((_, idx) => (
-                        <div key={`arrow-${idx}`} className="stroop-item-wrap"><div className="stroop-arrow">{idx === activeGroup.targetIndex ? '↓' : ''}</div></div>
+                        <div key={`arrow-top-${idx}`} className="stroop-item-wrap"><div className="stroop-arrow">{idx === activeGroup.targetIndex ? '↓' : ''}</div></div>
                       ))}
                       {activeGroup.words.map((word, idx) => (
                         <div key={`${word.text}-${idx}`} className="stroop-item-wrap">
                           <div className="stroop-word" style={{ color: word.color }}>{word.text}</div>
                         </div>
+                      ))}
+                      {activeGroup.words.map((_, idx) => (
+                        <div key={`arrow-bottom-${idx}`} className="stroop-item-wrap"><div className="stroop-arrow">{idx === activeGroup.targetIndex ? '↑' : ''}</div></div>
                       ))}
                     </div>
                   </div>
