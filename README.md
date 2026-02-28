@@ -1,6 +1,6 @@
 # Codex-
 
-Brain Training（舒尔特表）单页应用。
+Brain Training（舒尔特表 / Stroop / 序列工作记忆）单页应用。
 
 ## 本地打开
 1. 进入项目目录。
