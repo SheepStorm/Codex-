@@ -1175,7 +1175,10 @@
 
         useEffect(() => {
           if (!running || !started || !pendingQ) return;
-          if (inputValue.trim() === '') return;
+          const raw = inputValue.trim();
+          if (raw === '') return;
+          const expectedLen = String(Math.abs(pendingQ.answer)).length;
+          if (raw.length < expectedLen) return;
           const timer = setTimeout(() => submitAnswer(inputValue), 220);
           return () => clearTimeout(timer);
         }, [inputValue, running, started, pendingQ]);
