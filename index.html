@@ -1253,6 +1253,7 @@
         const [resultReason, setResultReason] = useState('');
         const [shownQuestions, setShownQuestions] = useState([]);
         const [answerState, setAnswerState] = useState('idle');
+        const streakRef = useRef(0);
 
         const currentTraining = difficulty.trainings[0];
         const bestKey = `nback_best_${difficulty.id}`;
@@ -1267,6 +1268,7 @@
           setStarted(false);
           setTimeLeft(difficulty.view.durationSec || 0);
           setStreak(0);
+          streakRef.current = 0;
           const first = generateNBackQuestion(1, difficulty.view.maxResult);
           setCurrentQ(first);
           setShownQuestions([first]);
@@ -1279,12 +1281,16 @@
         }, [difficulty, bestKey]);
 
         useEffect(() => {
+          streakRef.current = streak;
+        }, [streak]);
+
+        useEffect(() => {
           if (!running || !isTimed) return;
           const timer = setInterval(() => {
             setTimeLeft((t) => {
               if (t <= 1) {
                 clearInterval(timer);
-                endRound('时间到，本局结束');
+                endRound('时间到，本局结束', null, streakRef.current);
                 return 0;
               }
               return t - 1;
@@ -1310,15 +1316,15 @@
           return () => clearTimeout(timer);
         }, [inputValue, running, started, pendingQ]);
 
-        function endRound(reasonText, wrongPayload) {
+        function endRound(reasonText, wrongPayload, finalStreak = streakRef.current) {
           setRunning(false);
           setResultReason(reasonText);
           if (wrongPayload) setLastError(wrongPayload);
           setShowRoundResult(true);
           const currentBest = Number(localStorage.getItem(bestKey) || 0);
-          if (streak > currentBest) {
-            localStorage.setItem(bestKey, String(streak));
-            setBest(streak);
+          if (finalStreak > currentBest) {
+            localStorage.setItem(bestKey, String(finalStreak));
+            setBest(finalStreak);
           }
         }
 
@@ -1345,7 +1351,11 @@
           if (val === pendingQ.answer) {
             setAnswerState('correct');
             setInputValue('');
-            setStreak((v) => v + 1);
+            setStreak((v) => {
+              const next = v + 1;
+              streakRef.current = next;
+              return next;
+            });
             const base = shownQuestions;
             setTimeout(() => {
               moveToNextQuestion(base);
@@ -1365,6 +1375,7 @@
           setStarted(false);
           setTimeLeft(difficulty.view.durationSec || 0);
           setStreak(0);
+          streakRef.current = 0;
           const first = generateNBackQuestion(1, difficulty.view.maxResult);
           setCurrentQ(first);
           setShownQuestions([first]);
