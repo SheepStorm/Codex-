@@ -1517,7 +1517,7 @@
               <button className="back" onClick={onBack}>← 返回</button>
               <div className="training-info">
                 <h3>{difficulty.name} · {currentTraining.label}</h3>
-                <p>{currentTraining.order === 'reverse' ? '倒序' : '顺序'}复述 {currentTraining.length} 个{currentTraining.contentType === 'letter' ? '字母' : currentTraining.contentType === 'number' ? '数字' : '数字/字母'}</p>
+                <p><span className="highlight">{currentTraining.order === 'reverse' ? '倒叙' : '顺序'}</span>复述 {currentTraining.length} 个{currentTraining.contentType === 'letter' ? '字母' : currentTraining.contentType === 'number' ? '数字' : '数字/字母'}</p>
               </div>
               <div className="dots">
                 {difficulty.trainings.map((_, i) => <div key={i} className={`dot ${i < index ? 'done' : ''} ${i === index ? 'active' : ''}`} />)}
@@ -1538,7 +1538,7 @@
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
                   <div className="play">▶</div>
                   <h2>准备好了吗？</h2>
-                  <p>屏幕中央将每秒展示一个字符。展示完成后请按{currentTraining.order === 'reverse' ? '倒序' : '顺序'}输入。</p>
+                  <p>屏幕中央将每秒展示一个字符。展示完成后请按<span className="highlight">{currentTraining.order === 'reverse' ? '倒叙' : '顺序'}</span>输入。</p>
                   <div className="tip">点击任意键继续 / 点击下方按钮继续</div>
                   <button className="next-btn" onClick={() => setShowPrepare(false)}>开始展示</button>
                 </div>
