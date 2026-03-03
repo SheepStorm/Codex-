@@ -951,7 +951,10 @@
         const [showPrepare, setShowPrepare] = useState(true);
         const [showRestBetweenRounds, setShowRestBetweenRounds] = useState(false);
         const [restSeconds, setRestSeconds] = useState(10);
+        const [elapsed, setElapsed] = useState(0);
         const [roundElapsed, setRoundElapsed] = useState(0);
+        const [startAt, setStartAt] = useState(0);
+        const [showResult, setShowResult] = useState(false);
         const [tokens, setTokens] = useState([]);
         const [activeIndex, setActiveIndex] = useState(0);
         const [groups, setGroups] = useState([]);
