@@ -667,7 +667,13 @@
         const numbers = '0123456789'.split('');
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
         const pool = contentType === 'number' ? numbers : contentType === 'letter' ? letters : [...numbers, ...letters];
-        return Array.from({ length }, () => pickRandom(pool));
+        const result = [];
+        for (let i = 0; i < length; i++) {
+          const prev = result[i - 1];
+          const candidates = prev == null ? pool : pool.filter((c) => c !== prev);
+          result.push(pickRandom(candidates));
+        }
+        return result;
       }
 
       function normalizeSequenceValue(v) {
