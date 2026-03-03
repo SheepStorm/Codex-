@@ -328,6 +328,41 @@
         margin: 0 auto;
       }
 
+      .seq-stage {
+        width: min(90vw, 700px);
+        min-height: min(68vh, 560px);
+        display: grid;
+        place-items: center;
+        border-radius: 16px;
+        border: 1px solid #353535;
+        background: #232323;
+      }
+      .seq-char {
+        font-size: clamp(72px, 14vw, 150px);
+        font-weight: 900;
+        color: #fff;
+        letter-spacing: 4px;
+      }
+      .seq-input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+        gap: 10px;
+        margin: 10px 0 6px;
+      }
+      .seq-input {
+        width: 100%;
+        text-align: center;
+        background: #1c1c1c;
+        color: #fff;
+        border: 2px solid #424242;
+        border-radius: 8px;
+        font-size: 24px;
+        font-weight: 700;
+        padding: 10px 6px;
+      }
+      .seq-input.wrong { border-color: #e92222; color: #ff8a8a; }
+      .seq-answer { margin-top: 8px; color: #c8c8c8; font-size: 14px; }
+
       .overlay {
         position: fixed;
         inset: 0;
@@ -399,7 +434,7 @@
         { id: 'schulte', name: '舒尔特表', en: 'Schulte Table', color: '#00c853', desc: '数字/字母/诗词专注训练', status: 'available' },
         { id: 'stroop', name: 'Stroop训练', en: 'Stroop Training', color: '#2979ff', desc: '颜色与词义冲突抑制训练', status: 'available' },
         { id: 'nback-math', name: '1-back加减法训练', en: '1-back Math', color: '#d500f9', desc: '工作记忆 + 运算反应训练', status: 'available' },
-        { id: 'seq-memory', name: '顺序工作记忆训练', en: 'Sequence Working Memory', color: '#ff6d00', desc: '顺序记忆与更新能力训练', status: 'coming-soon' },
+        { id: 'seq-memory', name: '顺序工作记忆训练', en: 'Sequence Working Memory', color: '#ff6d00', desc: '顺序记忆与更新能力训练', status: 'available' },
       ];
 
       // 为后续扩展其他训练项目预留的模块化入口
@@ -526,6 +561,27 @@
             },
           ],
         },
+        'seq-memory': {
+          id: 'seq-memory',
+          title: '顺序工作记忆训练',
+          difficulties: [
+            {
+              id: 'sm-basic',
+              name: '基础',
+              color: '#00c853',
+              gridSize: 1,
+              trainings: [
+                { id: 'sm-1', label: '练习1', contentType: 'number', length: 5, order: 'forward' },
+                { id: 'sm-2', label: '练习2', contentType: 'number', length: 5, order: 'reverse' },
+                { id: 'sm-3', label: '练习3', contentType: 'letter', length: 5, order: 'forward' },
+                { id: 'sm-4', label: '练习4', contentType: 'letter', length: 4, order: 'reverse' },
+                { id: 'sm-5', label: '练习5', contentType: 'mixed', length: 5, order: 'forward' },
+              ],
+            },
+            { id: 'sm-intermediate', name: '进阶', color: '#2979ff', gridSize: 1, status: 'coming-soon', trainings: [{ id: 'sm-i-1', label: '敬请期待' }] },
+            { id: 'sm-advanced', name: '高级', color: '#d500f9', gridSize: 1, status: 'coming-soon', trainings: [{ id: 'sm-a-1', label: '敬请期待' }] },
+          ],
+        },
       };
 
       const COLOR_POOL = ['#ff6d00','#ff1744','#00e676','#00b0ff','#ffea00','#651fff','#ff9100','#18ffff','#d500f9','#64dd17'];
@@ -605,6 +661,17 @@
           answer = a - b;
         }
         return { id, a, b, op, answer, text: `${a} ${op} ${b} = ?` };
+      }
+
+      function createSequenceMemoryChars(contentType, length) {
+        const numbers = '0123456789'.split('');
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        const pool = contentType === 'number' ? numbers : contentType === 'letter' ? letters : [...numbers, ...letters];
+        return Array.from({ length }, () => pickRandom(pool));
+      }
+
+      function normalizeSequenceValue(v) {
+        return String(v || '').trim().toUpperCase();
       }
 
       function formatTime(ms) {
@@ -712,7 +779,7 @@
                 <div key={d.id} className="card" onClick={() => d.status !== 'coming-soon' && onSelectDifficulty(d)}>
                   <div>
                     <h3 style={{ color: d.color }}>{d.name}</h3>
-                    <p>{module.id === 'stroop' ? `${d.name} Stroop 训练` : module.id === 'nback-math' ? `${d.name} 算术工作记忆` : `${d.gridSize} × ${d.gridSize} 表格 · ${d.name}认知训练`}</p>
+                    <p>{module.id === 'stroop' ? `${d.name} Stroop 训练` : module.id === 'nback-math' ? `${d.name} 算术工作记忆` : module.id === 'seq-memory' ? `${d.name} 序列复述训练` : `${d.gridSize} × ${d.gridSize} 表格 · ${d.name}认知训练`}</p>
                     <div className="count">{d.status === 'coming-soon' ? '敬请期待' : `${d.trainings.length} 个训练项目`}</div>
                   </div>
                   {d.status === 'coming-soon' ? <span className="tag">敬请期待</span> : <div className="icon" style={{ color: d.color }}>{d.gridSize}</div>}
@@ -1369,6 +1436,136 @@
         );
       }
 
+      function SequenceMemoryTrainingPage({ difficulty, onBack, onComplete }) {
+        const [index, setIndex] = useState(0);
+        const [showPrepare, setShowPrepare] = useState(true);
+        const [phase, setPhase] = useState('show');
+        const [sequence, setSequence] = useState([]);
+        const [displayIndex, setDisplayIndex] = useState(0);
+        const [answers, setAnswers] = useState([]);
+        const [wrongSet, setWrongSet] = useState(new Set());
+        const [submittedOnce, setSubmittedOnce] = useState(false);
+
+        const currentTraining = difficulty.trainings[index];
+        const expected = currentTraining.order === 'reverse' ? [...sequence].reverse() : sequence;
+
+        function nextTraining() {
+          if (index < difficulty.trainings.length - 1) {
+            setIndex((i) => i + 1);
+          } else {
+            onComplete();
+          }
+        }
+
+        useEffect(() => {
+          const chars = createSequenceMemoryChars(currentTraining.contentType, currentTraining.length);
+          setSequence(chars);
+          setDisplayIndex(0);
+          setAnswers(Array.from({ length: currentTraining.length }, () => ''));
+          setWrongSet(new Set());
+          setSubmittedOnce(false);
+          setShowPrepare(true);
+          setPhase('show');
+        }, [index, difficulty]);
+
+        useEffect(() => {
+          if (!showPrepare && phase === 'show') {
+            const timer = setInterval(() => {
+              setDisplayIndex((prev) => {
+                if (prev >= sequence.length - 1) {
+                  clearInterval(timer);
+                  setPhase('input');
+                  return prev;
+                }
+                return prev + 1;
+              });
+            }, 1000);
+            return () => clearInterval(timer);
+          }
+        }, [showPrepare, phase, sequence.length]);
+
+        useEffect(() => {
+          if (showPrepare || phase !== 'input') return;
+          if (answers.some((a) => normalizeSequenceValue(a) === '')) return;
+          const normalized = answers.map(normalizeSequenceValue);
+          const normalizedExpected = expected.map(normalizeSequenceValue);
+          const wrong = new Set();
+          normalized.forEach((v, i) => {
+            if (v !== normalizedExpected[i]) wrong.add(i);
+          });
+          setSubmittedOnce(true);
+          setWrongSet(wrong);
+          if (wrong.size === 0) {
+            setTimeout(nextTraining, 350);
+          }
+        }, [answers, phase, showPrepare, expected]);
+
+        return (
+          <div className="page training-page">
+            <div className="training-nav">
+              <button className="back" onClick={onBack}>← 返回</button>
+              <div className="training-info">
+                <h3>{difficulty.name} · {currentTraining.label}</h3>
+                <p>{currentTraining.order === 'reverse' ? '倒序' : '顺序'}复述 {currentTraining.length} 个{currentTraining.contentType === 'letter' ? '字母' : currentTraining.contentType === 'number' ? '数字' : '数字/字母'}</p>
+              </div>
+              <div className="dots">
+                {difficulty.trainings.map((_, i) => <div key={i} className={`dot ${i < index ? 'done' : ''} ${i === index ? 'active' : ''}`} />)}
+              </div>
+            </div>
+
+            <div className="training-main" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="grid-wrap">
+                <div className="seq-stage">
+                  {!showPrepare && phase === 'show' && <div className="seq-char">{sequence[displayIndex]}</div>}
+                  {!showPrepare && phase === 'input' && <div className="seq-char" style={{ color: '#666', fontSize: 'clamp(20px, 3vw, 30px)' }}>请输入答案</div>}
+                </div>
+              </div>
+            </div>
+
+            {showPrepare && (
+              <div className="overlay" onClick={() => setShowPrepare(false)}>
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <div className="play">▶</div>
+                  <h2>准备好了吗？</h2>
+                  <p>屏幕中央将每秒展示一个字符。展示完成后请按{currentTraining.order === 'reverse' ? '倒序' : '顺序'}输入。</p>
+                  <div className="tip">点击任意键继续 / 点击下方按钮继续</div>
+                  <button className="next-btn" onClick={() => setShowPrepare(false)}>开始展示</button>
+                </div>
+              </div>
+            )}
+
+            {!showPrepare && phase === 'input' && (
+              <div className="overlay">
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <h2 style={{ marginTop: 0 }}>请输入答案</h2>
+                  <div className="seq-input-grid" style={{ gridTemplateColumns: `repeat(${currentTraining.length}, 1fr)` }}>
+                    {answers.map((val, i) => (
+                      <input
+                        key={i}
+                        className={`seq-input ${wrongSet.has(i) ? 'wrong' : ''}`}
+                        maxLength={1}
+                        value={val}
+                        onChange={(e) => {
+                          const next = [...answers];
+                          next[i] = e.target.value.slice(-1);
+                          setAnswers(next);
+                          if (wrongSet.size) setWrongSet(new Set());
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div className="tip">字母不区分大小写；填满后自动检测。</div>
+                  {submittedOnce && <div className="seq-answer">正确答案：{expected.join(' ')}</div>}
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                    <button className="next-btn" style={{ marginTop: 0, opacity: submittedOnce ? 1 : 0.45 }} disabled={!submittedOnce} onClick={nextTraining}>查看答案并进入下一题</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
       function App() {
         const [currentPage, setCurrentPage] = useState('home');
         const [selectedProject, setSelectedProject] = useState(null);
@@ -1413,6 +1610,12 @@
               />
             ) : selectedProject === 'nback-math' ? (
               <NBackMathTrainingPage
+                difficulty={selectedDifficulty}
+                onBack={() => setCurrentPage('difficulty')}
+                onComplete={() => setCurrentPage('difficulty')}
+              />
+            ) : selectedProject === 'seq-memory' ? (
+              <SequenceMemoryTrainingPage
                 difficulty={selectedDifficulty}
                 onBack={() => setCurrentPage('difficulty')}
                 onComplete={() => setCurrentPage('difficulty')}
