@@ -883,7 +883,14 @@
         function handleCellClick(cell) {
           if (!running || !gridData || showPrepare || showResult) return;
           const expected = gridData.sequence[targetIdx];
-          if (cell.targetKey !== expected) return;
+          const isPoemTraining = currentTraining.type === 'poem';
+          if (isPoemTraining) {
+            const expectedChar = currentTraining.targetSequence[targetIdx];
+            const isTargetCell = cell.id.startsWith('p-t-');
+            if (!isTargetCell || doneSet.has(cell.id) || cell.label !== expectedChar) return;
+          } else if (cell.targetKey !== expected) {
+            return;
+          }
           setDoneSet((prev) => {
             const next = new Set(prev);
             next.add(cell.id);
