@@ -445,7 +445,7 @@
                   type: 'poem',
                   mode: 'poem',
                   colored: false,
-                  targetSequence: '无言独上西楼月如钩寂寞梧桐深院锁清秋'.split(''),
+                  targetSequence: '无言独上西楼月如钩寂寞梧桐深院锁清秋剪不断理还乱是离愁别是一般滋味在心头'.split(''),
                   poemTitle: '《相见欢》',
                   poemFull: '无言独上西楼，月如钩。寂寞梧桐深院锁清秋。剪不断，理还乱，是离愁。别是一般滋味在心头。',
                 },
@@ -457,7 +457,7 @@
                   type: 'poem',
                   mode: 'poem',
                   colored: true,
-                  targetSequence: '草长莺飞二月天拂堤杨柳醉春烟儿童散学归来早'.split(''),
+                  targetSequence: '草长莺飞二月天拂堤杨柳醉春烟儿童散学归来早忙趁东风放纸鸢'.split(''),
                   poemTitle: '《村居》',
                   poemFull: '草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。',
                 },
@@ -736,6 +736,7 @@
         const [showUnfinished, setShowUnfinished] = useState(false);
         const [showRestBetweenRounds, setShowRestBetweenRounds] = useState(false);
         const [restSeconds, setRestSeconds] = useState(10);
+        const [roundElapsed, setRoundElapsed] = useState(0);
 
         const currentTraining = difficulty.trainings[index];
 
@@ -752,6 +753,7 @@
           setShowUnfinished(false);
           setShowRestBetweenRounds(false);
           setRestSeconds(10);
+          setRoundElapsed(0);
         }, [index, difficulty]);
 
         useEffect(() => {
@@ -791,12 +793,18 @@
         }, [target, gridData, currentTraining]);
 
         function completeTraining() {
+          const finalElapsed = running ? Date.now() - startAt : elapsed;
           if (running) {
-            setElapsed(Date.now() - startAt);
+            setElapsed(finalElapsed);
             setRunning(false);
           }
-          setRestSeconds(10);
-          setShowRestBetweenRounds(true);
+          setRoundElapsed(finalElapsed);
+          if (index < difficulty.trainings.length - 1) {
+            setRestSeconds(10);
+            setShowRestBetweenRounds(true);
+          } else {
+            setShowResult(true);
+          }
         }
 
         function handleCellClick(cell) {
@@ -915,12 +923,11 @@
             )}
 
             {showResult && (
-              <div className="overlay" onClick={nextTraining}>
+              <div className="overlay" onClick={onComplete}>
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
                   <h2 style={{ marginTop: 0 }}>训练结果</h2>
-                  <p>本次用时：<span className="highlight">{formatTime(elapsed)}</span></p>
-                  <p>请休息10s后进行下一项训练。</p>
-                  <button className="next-btn" onClick={nextTraining}>下一个</button>
+                  <p>本次用时：<span className="highlight">{formatTime(roundElapsed || elapsed)}</span></p>
+                  <button className="next-btn" onClick={onComplete}>返回</button>
                 </div>
               </div>
             )}
@@ -929,6 +936,7 @@
               <div className="overlay">
                 <div className="modal">
                   <h2 style={{ marginTop: 0 }}>轮间休息</h2>
+                  <p>本次用时：<span className="highlight">{formatTime(roundElapsed || elapsed)}</span></p>
                   <p>请休息<span className="hl">{restSeconds}</span>秒后进行下一轮。</p>
                 </div>
               </div>
@@ -943,6 +951,7 @@
         const [showPrepare, setShowPrepare] = useState(true);
         const [showRestBetweenRounds, setShowRestBetweenRounds] = useState(false);
         const [restSeconds, setRestSeconds] = useState(10);
+        const [roundElapsed, setRoundElapsed] = useState(0);
         const [tokens, setTokens] = useState([]);
         const [activeIndex, setActiveIndex] = useState(0);
         const [groups, setGroups] = useState([]);
@@ -966,6 +975,10 @@
           setRestSeconds(10);
           setActiveIndex(0);
           setActiveGroupIndex(0);
+          setElapsed(0);
+          setRoundElapsed(0);
+          setStartAt(0);
+          setShowResult(false);
           if (isAdvanced) {
             setGroups(createStroopAdvancedGroups(difficulty.view.totalGroups, difficulty.view.allowRandomChars, difficulty.view.maxRandomChars));
             setTokens([]);
@@ -979,6 +992,12 @@
         }, [index, difficulty, isAdvanced]);
 
         useEffect(() => {
+          if (!running) return;
+          const timer = setInterval(() => setElapsed(Date.now() - startAt), 31);
+          return () => clearInterval(timer);
+        }, [running, startAt]);
+
+        useEffect(() => {
           if (!running || showPrepare || showRestBetweenRounds) return;
           const timer = setInterval(() => {
             if (isAdvanced) {
@@ -986,8 +1005,15 @@
                 if (prev >= groups.length - 1) {
                   clearInterval(timer);
                   setRunning(false);
-                  setShowRestBetweenRounds(true);
-                  setRestSeconds(10);
+                  const finalElapsed = Date.now() - startAt;
+                  setElapsed(finalElapsed);
+                  setRoundElapsed(finalElapsed);
+                  if (index < difficulty.trainings.length - 1) {
+                    setShowRestBetweenRounds(true);
+                    setRestSeconds(10);
+                  } else {
+                    setShowResult(true);
+                  }
                   return prev;
                 }
                 return prev + 1;
@@ -997,8 +1023,15 @@
                 if (prev >= tokens.length - 1) {
                   clearInterval(timer);
                   setRunning(false);
-                  setShowRestBetweenRounds(true);
-                  setRestSeconds(10);
+                  const finalElapsed = Date.now() - startAt;
+                  setElapsed(finalElapsed);
+                  setRoundElapsed(finalElapsed);
+                  if (index < difficulty.trainings.length - 1) {
+                    setShowRestBetweenRounds(true);
+                    setRestSeconds(10);
+                  } else {
+                    setShowResult(true);
+                  }
                   return prev;
                 }
                 return prev + 1;
@@ -1081,7 +1114,7 @@
 
               <div className="side-control">
                 <div className="timer">{isAdvanced ? `${activeGroupIndex + 1}/${difficulty.view.totalGroups}` : `${activeIndex + 1}/${tokens.length}`}</div>
-                <button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={() => setRunning((r) => !r)}>
+                <button className="start-stop" style={{ background: running ? 'var(--danger)' : 'var(--success)' }} onClick={() => { if (!running) setStartAt(Date.now() - elapsed); setRunning((r) => !r); }}>
                   {running ? '停止' : '开始'}
                 </button>
               </div>
@@ -1103,7 +1136,18 @@
               <div className="overlay">
                 <div className="modal">
                   <h2 style={{ marginTop: 0 }}>轮间休息</h2>
+                  <p>本次用时：<span className="highlight">{formatTime(roundElapsed || elapsed)}</span></p>
                   <p>请休息<span className="hl">{restSeconds}</span>秒后进行下一轮。</p>
+                </div>
+              </div>
+            )}
+
+            {showResult && (
+              <div className="overlay" onClick={onComplete}>
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <h2 style={{ marginTop: 0 }}>训练结果</h2>
+                  <p>本次用时：<span className="highlight">{formatTime(roundElapsed || elapsed)}</span></p>
+                  <button className="next-btn" onClick={onComplete}>返回</button>
                 </div>
               </div>
             )}
