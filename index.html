@@ -428,7 +428,7 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script type="text/babel">
-      const { useEffect, useMemo, useState } = React;
+      const { useEffect, useMemo, useRef, useState } = React;
 
       const trainingProjects = [
         { id: 'schulte', name: '舒尔特表', en: 'Schulte Table', color: '#00c853', desc: '数字/字母/诗词专注训练', status: 'available' },
@@ -1445,6 +1445,8 @@
         const [answers, setAnswers] = useState([]);
         const [wrongSet, setWrongSet] = useState(new Set());
         const [submittedOnce, setSubmittedOnce] = useState(false);
+        const [readyToCheck, setReadyToCheck] = useState(false);
+        const inputRefs = useRef([]);
 
         const currentTraining = difficulty.trainings[index];
         const expected = currentTraining.order === 'reverse' ? [...sequence].reverse() : sequence;
@@ -1464,6 +1466,8 @@
           setAnswers(Array.from({ length: currentTraining.length }, () => ''));
           setWrongSet(new Set());
           setSubmittedOnce(false);
+          setReadyToCheck(false);
+          inputRefs.current = [];
           setShowPrepare(true);
           setPhase('show');
         }, [index, difficulty]);
@@ -1486,6 +1490,12 @@
 
         useEffect(() => {
           if (showPrepare || phase !== 'input') return;
+          setTimeout(() => inputRefs.current[0]?.focus(), 0);
+        }, [showPrepare, phase, index]);
+
+        useEffect(() => {
+          if (showPrepare || phase !== 'input') return;
+          if (!readyToCheck) return;
           if (answers.some((a) => normalizeSequenceValue(a) === '')) return;
           const normalized = answers.map(normalizeSequenceValue);
           const normalizedExpected = expected.map(normalizeSequenceValue);
@@ -1498,7 +1508,8 @@
           if (wrong.size === 0) {
             setTimeout(nextTraining, 350);
           }
-        }, [answers, phase, showPrepare, expected]);
+          setReadyToCheck(false);
+        }, [answers, phase, showPrepare, expected, readyToCheck]);
 
         return (
           <div className="page training-page">
@@ -1542,14 +1553,27 @@
                     {answers.map((val, i) => (
                       <input
                         key={i}
+                        ref={(el) => (inputRefs.current[i] = el)}
                         className={`seq-input ${wrongSet.has(i) ? 'wrong' : ''}`}
                         maxLength={1}
                         value={val}
                         onChange={(e) => {
                           const next = [...answers];
-                          next[i] = e.target.value.slice(-1);
+                          const nextVal = e.target.value.slice(-1);
+                          next[i] = nextVal;
                           setAnswers(next);
                           if (wrongSet.size) setWrongSet(new Set());
+                          if (nextVal && i < currentTraining.length - 1) {
+                            inputRefs.current[i + 1]?.focus();
+                          }
+                          if (next.every((x) => normalizeSequenceValue(x) !== '')) {
+                            setReadyToCheck(true);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Backspace' && !answers[i] && i > 0) {
+                            inputRefs.current[i - 1]?.focus();
+                          }
                         }}
                       />
                     ))}
