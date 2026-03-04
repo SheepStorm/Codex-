@@ -362,6 +362,36 @@
       }
       .seq-input.wrong { border-color: #e92222; color: #ff8a8a; }
       .seq-answer { margin-top: 8px; color: #c8c8c8; font-size: 14px; }
+      .seq-slot {
+        width: 100%;
+        text-align: center;
+        background: #1c1c1c;
+        color: #fff;
+        border: 2px solid #424242;
+        border-radius: 8px;
+        font-size: 24px;
+        font-weight: 700;
+        padding: 10px 6px;
+        min-height: 56px;
+        display: grid;
+        place-items: center;
+      }
+      .seq-slot.wrong { border-color: #e92222; color: #ff8a8a; }
+      .seq-option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .seq-option {
+        border: 1px solid #5a5a5a;
+        border-radius: 8px;
+        background: #2a2a2a;
+        color: #fff;
+        font-size: 20px;
+        font-weight: 700;
+        padding: 8px;
+      }
 
       .overlay {
         position: fixed;
@@ -578,7 +608,21 @@
                 { id: 'sm-5', label: '练习5', contentType: 'mixed', length: 5, order: 'forward' },
               ],
             },
-            { id: 'sm-intermediate', name: '进阶', color: '#2979ff', gridSize: 1, status: 'coming-soon', trainings: [{ id: 'sm-i-1', label: '敬请期待' }] },
+            {
+              id: 'sm-intermediate',
+              name: '进阶',
+              color: '#2979ff',
+              gridSize: 1,
+              trainings: [
+                { id: 'sm-i-b1', label: '规则切换1', variant: 'rule-switch', contentType: 'mixed', length: 6, transform: 'forward' },
+                { id: 'sm-i-b2', label: '规则切换2', variant: 'rule-switch', contentType: 'mixed', length: 6, transform: 'reverse' },
+                { id: 'sm-i-b3', label: '规则切换3', variant: 'rule-switch', contentType: 'mixed', length: 6, transform: 'letter-first' },
+                { id: 'sm-i-d1', label: '分块重组1', variant: 'chunk-reconstruct', contentType: 'mixed', length: 6, chunkPattern: [2, 2, 2], distractorCount: 2 },
+                { id: 'sm-i-d2', label: '分块重组2', variant: 'chunk-reconstruct', contentType: 'mixed', length: 6, chunkPattern: [3, 3], distractorCount: 2 },
+                { id: 'sm-i-d3', label: '分块重组3', variant: 'chunk-reconstruct', contentType: 'mixed', length: 7, chunkPattern: [3, 2, 2], distractorCount: 3 },
+                { id: 'sm-i-d4', label: '分块重组4', variant: 'chunk-reconstruct', contentType: 'mixed', length: 8, chunkPattern: [2, 2, 2, 2], distractorCount: 4 },
+              ],
+            },
             { id: 'sm-advanced', name: '高级', color: '#d500f9', gridSize: 1, status: 'coming-soon', trainings: [{ id: 'sm-a-1', label: '敬请期待' }] },
           ],
         },
@@ -678,6 +722,69 @@
 
       function normalizeSequenceValue(v) {
         return String(v || '').trim().toUpperCase();
+      }
+
+      function transformSequenceForRule(sequence, transform) {
+        if (transform === 'reverse') return [...sequence].reverse();
+        if (transform === 'letter-first') {
+          const letters = sequence.filter((char) => /[A-Z]/.test(char));
+          const numbers = sequence.filter((char) => /\d/.test(char));
+          return [...letters, ...numbers];
+        }
+        return sequence;
+      }
+
+      function createChunkOptionPool(expected, distractorCount) {
+        const basePool = Array.from(new Set(expected));
+        const mixedPool = Array.from(new Set([...basePool, ...'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')]));
+        const pool = [...basePool];
+        const needed = Math.max(0, distractorCount || 0);
+        while (pool.length < basePool.length + needed && mixedPool.length) {
+          const candidate = pickRandom(mixedPool);
+          if (!pool.includes(candidate)) pool.push(candidate);
+        }
+        return shuffle(pool);
+      }
+
+      function formatChunkPattern(pattern) {
+        return (pattern || []).join('-');
+      }
+
+      function formatSequenceTrainingDesc(training) {
+        if (training.variant === 'rule-switch') {
+          if (training.transform === 'reverse') return '按倒叙输入屏幕中的字符';
+          if (training.transform === 'letter-first') return '按“字母在前、数字在后”重排后输入';
+          return '按顺序输入屏幕中的字符';
+        }
+        if (training.variant === 'chunk-reconstruct') {
+          return `按分块 ${formatChunkPattern(training.chunkPattern)} 完成重组输入`;
+        }
+        const contentLabel = training.contentType === 'letter' ? '字母' : training.contentType === 'number' ? '数字' : '数字/字母';
+        return `${training.order === 'reverse' ? '倒叙' : '顺序'}复述 ${training.length} 个${contentLabel}`;
+      }
+
+      function formatSequencePrepareDesc(training) {
+        if (training.variant === 'rule-switch') {
+          if (training.transform === 'reverse') return '展示完成后请按倒叙输入。';
+          if (training.transform === 'letter-first') return '展示完成后请按“字母在前、数字在后”规则输入。';
+          return '展示完成后请按顺序输入。';
+        }
+        if (training.variant === 'chunk-reconstruct') {
+          return `展示完成后请按分块 ${formatChunkPattern(training.chunkPattern)} 规则完成重组。`;
+        }
+        return `展示完成后请按${training.order === 'reverse' ? '倒叙' : '顺序'}输入。`;
+      }
+
+      function formatSequenceInputTitle(training) {
+        if (training.variant === 'rule-switch') return '请按规则输入答案';
+        if (training.variant === 'chunk-reconstruct') return '请点击下方字符完成重组';
+        return '请输入答案';
+      }
+
+      function formatSequenceTip(training) {
+        if (training.variant === 'rule-switch') return '字母不区分大小写；填满后自动检测。';
+        if (training.variant === 'chunk-reconstruct') return '点击字符依次填入上方空位；填满后自动检测。';
+        return '字母不区分大小写；填满后自动检测。';
       }
 
       function formatTime(ms) {
@@ -1473,7 +1580,14 @@
         const inputRefs = useRef([]);
 
         const currentTraining = difficulty.trainings[index];
-        const expected = currentTraining.order === 'reverse' ? [...sequence].reverse() : sequence;
+        const [optionPool, setOptionPool] = useState([]);
+        const expected = currentTraining.variant === 'rule-switch'
+          ? transformSequenceForRule(sequence, currentTraining.transform)
+          : currentTraining.variant === 'chunk-reconstruct'
+            ? sequence
+            : currentTraining.order === 'reverse'
+              ? [...sequence].reverse()
+              : sequence;
 
         function nextTraining() {
           if (index < difficulty.trainings.length - 1) {
@@ -1491,6 +1605,7 @@
           setWrongSet(new Set());
           setSubmittedOnce(false);
           setReadyToCheck(false);
+          setOptionPool([]);
           inputRefs.current = [];
           setShowPrepare(true);
           setPhase('show');
@@ -1519,6 +1634,13 @@
 
         useEffect(() => {
           if (showPrepare || phase !== 'input') return;
+          if (currentTraining.variant !== 'chunk-reconstruct') return;
+          if (optionPool.length) return;
+          setOptionPool(createChunkOptionPool(expected, currentTraining.distractorCount));
+        }, [showPrepare, phase, currentTraining, expected, optionPool.length]);
+
+        useEffect(() => {
+          if (showPrepare || phase !== 'input') return;
           if (!readyToCheck) return;
           if (answers.some((a) => normalizeSequenceValue(a) === '')) return;
           const normalized = answers.map(normalizeSequenceValue);
@@ -1535,13 +1657,29 @@
           setReadyToCheck(false);
         }, [answers, phase, showPrepare, expected, readyToCheck]);
 
+        function updateAnswerAt(pos, rawVal) {
+          const next = [...answers];
+          next[pos] = (rawVal || '').slice(-1);
+          setAnswers(next);
+          if (wrongSet.size) setWrongSet(new Set());
+          if (next.every((x) => normalizeSequenceValue(x) !== '')) {
+            setReadyToCheck(true);
+          }
+        }
+
+        function handleChunkPick(char) {
+          const emptyIndex = answers.findIndex((v) => normalizeSequenceValue(v) === '');
+          if (emptyIndex === -1) return;
+          updateAnswerAt(emptyIndex, char);
+        }
+
         return (
           <div className="page training-page">
             <div className="training-nav">
               <button className="back" onClick={onBack}>← 返回</button>
               <div className="training-info">
                 <h3>{difficulty.name} · {currentTraining.label}</h3>
-                <p><span className="highlight">{currentTraining.order === 'reverse' ? '倒叙' : '顺序'}</span>复述 {currentTraining.length} 个{currentTraining.contentType === 'letter' ? '字母' : currentTraining.contentType === 'number' ? '数字' : '数字/字母'}</p>
+                <p>{formatSequenceTrainingDesc(currentTraining)}</p>
               </div>
               <div className="dots">
                 {difficulty.trainings.map((_, i) => <div key={i} className={`dot ${i < index ? 'done' : ''} ${i === index ? 'active' : ''}`} />)}
@@ -1562,7 +1700,7 @@
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
                   <div className="play">▶</div>
                   <h2>准备好了吗？</h2>
-                  <p>屏幕中央将每秒展示一个字符。展示完成后请按<span className="highlight">{currentTraining.order === 'reverse' ? '倒叙' : '顺序'}</span>输入。</p>
+                  <p>屏幕中央将每秒展示一个字符。{formatSequencePrepareDesc(currentTraining)}</p>
                   <div className="tip">点击任意键继续 / 点击下方按钮继续</div>
                   <button className="next-btn" onClick={() => setShowPrepare(false)}>开始展示</button>
                 </div>
@@ -1572,37 +1710,44 @@
             {!showPrepare && phase === 'input' && (
               <div className="overlay">
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
-                  <h2 style={{ marginTop: 0 }}>请输入答案</h2>
+                  <h2 style={{ marginTop: 0 }}>{formatSequenceInputTitle(currentTraining)}</h2>
                   <div className="seq-input-grid" style={{ gridTemplateColumns: `repeat(${currentTraining.length}, 1fr)` }}>
-                    {answers.map((val, i) => (
-                      <input
-                        key={i}
-                        ref={(el) => (inputRefs.current[i] = el)}
-                        className={`seq-input ${wrongSet.has(i) ? 'wrong' : ''}`}
-                        maxLength={1}
-                        value={val}
-                        onChange={(e) => {
-                          const next = [...answers];
-                          const nextVal = e.target.value.slice(-1);
-                          next[i] = nextVal;
-                          setAnswers(next);
-                          if (wrongSet.size) setWrongSet(new Set());
-                          if (nextVal && i < currentTraining.length - 1) {
-                            inputRefs.current[i + 1]?.focus();
-                          }
-                          if (next.every((x) => normalizeSequenceValue(x) !== '')) {
-                            setReadyToCheck(true);
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Backspace' && !answers[i] && i > 0) {
-                            inputRefs.current[i - 1]?.focus();
-                          }
-                        }}
-                      />
-                    ))}
+                    {currentTraining.variant === 'chunk-reconstruct' ? (
+                      answers.map((val, i) => (
+                        <div key={i} className={`seq-slot ${wrongSet.has(i) ? 'wrong' : ''}`}>{val || '＿'}</div>
+                      ))
+                    ) : (
+                      answers.map((val, i) => (
+                        <input
+                          key={i}
+                          ref={(el) => (inputRefs.current[i] = el)}
+                          className={`seq-input ${wrongSet.has(i) ? 'wrong' : ''}`}
+                          maxLength={1}
+                          value={val}
+                          onChange={(e) => {
+                            const nextVal = e.target.value.slice(-1);
+                            updateAnswerAt(i, nextVal);
+                            if (nextVal && i < currentTraining.length - 1) {
+                              inputRefs.current[i + 1]?.focus();
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Backspace' && !answers[i] && i > 0) {
+                              inputRefs.current[i - 1]?.focus();
+                            }
+                          }}
+                        />
+                      ))
+                    )}
                   </div>
-                  <div className="tip">字母不区分大小写；填满后自动检测。</div>
+                  {currentTraining.variant === 'chunk-reconstruct' && (
+                    <div className="seq-option-grid">
+                      {optionPool.map((char, i) => (
+                        <button key={`${char}-${i}`} className="seq-option" onClick={() => handleChunkPick(char)}>{char}</button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="tip">{formatSequenceTip(currentTraining)}</div>
                   {submittedOnce && <div className="seq-answer">正确答案：{expected.join(' ')}</div>}
                   <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
                     <button className="next-btn" style={{ marginTop: 0, opacity: submittedOnce ? 1 : 0.45 }} disabled={!submittedOnce} onClick={nextTraining}>查看答案并进入下一题</button>
