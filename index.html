@@ -614,13 +614,14 @@
               color: '#2979ff',
               gridSize: 1,
               trainings: [
+                { id: 'sm-i-a1', label: '双任务干扰1', variant: 'dual-task', contentType: 'mixed', length: 6, order: 'forward', distractorCount: 2 },
+                { id: 'sm-i-a2', label: '双任务干扰2', variant: 'dual-task', contentType: 'mixed', length: 7, order: 'forward', distractorCount: 3 },
+                { id: 'sm-i-a3', label: '双任务干扰3', variant: 'dual-task', contentType: 'mixed', length: 7, order: 'reverse', distractorCount: 3 },
+                { id: 'sm-i-c1', label: '滑动窗口1', variant: 'running-span', contentType: 'mixed', streamLength: 10, recallLength: 5 },
+                { id: 'sm-i-c2', label: '滑动窗口2', variant: 'running-span', contentType: 'mixed', streamLength: 12, recallLength: 6 },
                 { id: 'sm-i-b1', label: '规则切换1', variant: 'rule-switch', contentType: 'mixed', length: 6, transform: 'forward' },
                 { id: 'sm-i-b2', label: '规则切换2', variant: 'rule-switch', contentType: 'mixed', length: 6, transform: 'reverse' },
                 { id: 'sm-i-b3', label: '规则切换3', variant: 'rule-switch', contentType: 'mixed', length: 6, transform: 'letter-first' },
-                { id: 'sm-i-d1', label: '分块重组1', variant: 'chunk-reconstruct', contentType: 'mixed', length: 6, chunkPattern: [2, 2, 2], distractorCount: 2 },
-                { id: 'sm-i-d2', label: '分块重组2', variant: 'chunk-reconstruct', contentType: 'mixed', length: 6, chunkPattern: [3, 3], distractorCount: 2 },
-                { id: 'sm-i-d3', label: '分块重组3', variant: 'chunk-reconstruct', contentType: 'mixed', length: 7, chunkPattern: [3, 2, 2], distractorCount: 3 },
-                { id: 'sm-i-d4', label: '分块重组4', variant: 'chunk-reconstruct', contentType: 'mixed', length: 8, chunkPattern: [2, 2, 2, 2], distractorCount: 4 },
               ],
             },
             { id: 'sm-advanced', name: '高级', color: '#d500f9', gridSize: 1, status: 'coming-soon', trainings: [{ id: 'sm-a-1', label: '敬请期待' }] },
@@ -746,11 +747,27 @@
         return shuffle(pool);
       }
 
+      function createDualTaskPrompts(sequence, count) {
+        const source = shuffle(sequence).slice(0, Math.min(sequence.length, Math.max(1, count || 1)));
+        return source.map((char) => {
+          const askDigit = Math.random() < 0.5;
+          return askDigit
+            ? { text: `字符 ${char} 是数字吗？`, answer: /\d/.test(char) }
+            : { text: `字符 ${char} 是字母吗？`, answer: /[A-Z]/.test(char) };
+        });
+      }
+
       function formatChunkPattern(pattern) {
         return (pattern || []).join('-');
       }
 
       function formatSequenceTrainingDesc(training) {
+        if (training.variant === 'dual-task') {
+          return `${training.order === 'reverse' ? '倒叙' : '顺序'}复述 ${training.length} 个字符（含干扰题）`;
+        }
+        if (training.variant === 'running-span') {
+          return `连续展示 ${training.streamLength} 个字符后，输入最后 ${training.recallLength} 个`;
+        }
         if (training.variant === 'rule-switch') {
           if (training.transform === 'reverse') return '按倒叙输入屏幕中的字符';
           if (training.transform === 'letter-first') return '按“字母在前、数字在后”重排后输入';
@@ -764,6 +781,12 @@
       }
 
       function formatSequencePrepareDesc(training) {
+        if (training.variant === 'dual-task') {
+          return `展示完成后先回答 ${training.distractorCount || 2} 道干扰题，再按${training.order === 'reverse' ? '倒叙' : '顺序'}输入。`;
+        }
+        if (training.variant === 'running-span') {
+          return `展示完成后请输入最后 ${training.recallLength} 个字符（按出现顺序）。`;
+        }
         if (training.variant === 'rule-switch') {
           if (training.transform === 'reverse') return '展示完成后请按倒叙输入。';
           if (training.transform === 'letter-first') return '展示完成后请按“字母在前、数字在后”规则输入。';
@@ -776,12 +799,16 @@
       }
 
       function formatSequenceInputTitle(training) {
+        if (training.variant === 'dual-task') return '请按记忆顺序输入答案';
+        if (training.variant === 'running-span') return '请输入最后出现的字符';
         if (training.variant === 'rule-switch') return '请按规则输入答案';
         if (training.variant === 'chunk-reconstruct') return '请点击下方字符完成重组';
         return '请输入答案';
       }
 
       function formatSequenceTip(training) {
+        if (training.variant === 'dual-task') return '先完成干扰题，再输入记忆结果；字母不区分大小写。';
+        if (training.variant === 'running-span') return '只输入最后出现的字符；字母不区分大小写。';
         if (training.variant === 'rule-switch') return '字母不区分大小写；填满后自动检测。';
         if (training.variant === 'chunk-reconstruct') return '点击字符依次填入上方空位；填满后自动检测。';
         return '字母不区分大小写；填满后自动检测。';
@@ -1577,11 +1604,17 @@
         const [wrongSet, setWrongSet] = useState(new Set());
         const [submittedOnce, setSubmittedOnce] = useState(false);
         const [readyToCheck, setReadyToCheck] = useState(false);
+        const [distractors, setDistractors] = useState([]);
+        const [distractorIndex, setDistractorIndex] = useState(0);
         const inputRefs = useRef([]);
 
         const currentTraining = difficulty.trainings[index];
+        const displayLength = currentTraining.variant === 'running-span' ? currentTraining.streamLength : currentTraining.length;
+        const answerLength = currentTraining.variant === 'running-span' ? currentTraining.recallLength : currentTraining.length;
         const [optionPool, setOptionPool] = useState([]);
-        const expected = currentTraining.variant === 'rule-switch'
+        const expected = currentTraining.variant === 'running-span'
+          ? sequence.slice(Math.max(0, sequence.length - answerLength))
+          : currentTraining.variant === 'rule-switch'
           ? transformSequenceForRule(sequence, currentTraining.transform)
           : currentTraining.variant === 'chunk-reconstruct'
             ? sequence
@@ -1598,18 +1631,20 @@
         }
 
         useEffect(() => {
-          const chars = createSequenceMemoryChars(currentTraining.contentType, currentTraining.length);
+          const chars = createSequenceMemoryChars(currentTraining.contentType, displayLength);
           setSequence(chars);
           setDisplayIndex(0);
-          setAnswers(Array.from({ length: currentTraining.length }, () => ''));
+          setAnswers(Array.from({ length: answerLength }, () => ''));
           setWrongSet(new Set());
           setSubmittedOnce(false);
           setReadyToCheck(false);
+          setDistractors([]);
+          setDistractorIndex(0);
           setOptionPool([]);
           inputRefs.current = [];
           setShowPrepare(true);
           setPhase('show');
-        }, [index, difficulty]);
+        }, [index, difficulty, displayLength, answerLength]);
 
         useEffect(() => {
           if (!showPrepare && phase === 'show') {
@@ -1617,7 +1652,12 @@
               setDisplayIndex((prev) => {
                 if (prev >= sequence.length - 1) {
                   clearInterval(timer);
-                  setPhase('input');
+                  if (currentTraining.variant === 'dual-task') {
+                    setDistractors(createDualTaskPrompts(sequence, currentTraining.distractorCount));
+                    setPhase('distractor');
+                  } else {
+                    setPhase('input');
+                  }
                   return prev;
                 }
                 return prev + 1;
@@ -1625,8 +1665,7 @@
             }, 1000);
             return () => clearInterval(timer);
           }
-        }, [showPrepare, phase, sequence.length]);
-
+        }, [showPrepare, phase, sequence.length, currentTraining]);
         useEffect(() => {
           if (showPrepare || phase !== 'input') return;
           setTimeout(() => inputRefs.current[0]?.focus(), 0);
@@ -1673,6 +1712,21 @@
           updateAnswerAt(emptyIndex, char);
         }
 
+        function answerDistractor(choice) {
+          if (!distractors.length) {
+            setPhase('input');
+            return;
+          }
+          setDistractorIndex((prev) => {
+            const next = prev + 1;
+            if (next >= distractors.length) {
+              setPhase('input');
+              return prev;
+            }
+            return next;
+          });
+        }
+
         return (
           <div className="page training-page">
             <div className="training-nav">
@@ -1711,7 +1765,7 @@
               <div className="overlay">
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
                   <h2 style={{ marginTop: 0 }}>{formatSequenceInputTitle(currentTraining)}</h2>
-                  <div className="seq-input-grid" style={{ gridTemplateColumns: `repeat(${currentTraining.length}, 1fr)` }}>
+                  <div className="seq-input-grid" style={{ gridTemplateColumns: `repeat(${answerLength}, 1fr)` }}>
                     {currentTraining.variant === 'chunk-reconstruct' ? (
                       answers.map((val, i) => (
                         <div key={i} className={`seq-slot ${wrongSet.has(i) ? 'wrong' : ''}`}>{val || '＿'}</div>
@@ -1727,7 +1781,7 @@
                           onChange={(e) => {
                             const nextVal = e.target.value.slice(-1);
                             updateAnswerAt(i, nextVal);
-                            if (nextVal && i < currentTraining.length - 1) {
+                            if (nextVal && i < answerLength - 1) {
                               inputRefs.current[i + 1]?.focus();
                             }
                           }}
@@ -1751,6 +1805,19 @@
                   {submittedOnce && <div className="seq-answer">正确答案：{expected.join(' ')}</div>}
                   <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
                     <button className="next-btn" style={{ marginTop: 0, opacity: submittedOnce ? 1 : 0.45 }} disabled={!submittedOnce} onClick={nextTraining}>查看答案并进入下一题</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!showPrepare && phase === 'distractor' && (
+              <div className="overlay">
+                <div className="modal" onClick={(e) => e.stopPropagation()}>
+                  <h2 style={{ marginTop: 0 }}>干扰题 {Math.min(distractorIndex + 1, distractors.length)}/{distractors.length}</h2>
+                  <p>{distractors[distractorIndex]?.text}</p>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+                    <button className="next-btn" style={{ marginTop: 0 }} onClick={() => answerDistractor(true)}>是</button>
+                    <button className="next-btn" style={{ marginTop: 0 }} onClick={() => answerDistractor(false)}>否</button>
                   </div>
                 </div>
               </div>
