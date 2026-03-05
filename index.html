@@ -1006,7 +1006,6 @@
           window.addEventListener('keydown', onKey);
           return () => window.removeEventListener('keydown', onKey);
         }, [showPrepare]);
-
         const target = gridData?.sequence[targetIdx] || null;
         const isFinished = !!gridData && targetIdx >= gridData.sequence.length;
 
@@ -1462,6 +1461,11 @@
         }, [showPrepare]);
 
         useEffect(() => {
+          if (showPrepare || started) return;
+          startFirstRound();
+        }, [showPrepare, started]);
+
+        useEffect(() => {
           if (!running || !started || !pendingQ) return;
           const raw = inputValue.trim();
           if (raw === '') return;
@@ -1577,25 +1581,11 @@
                     <div>最佳 <b>{best}</b></div>
                   </div>
                   <div className="nback-equation">{currentQ ? currentQ.text : '?'}</div>
-                  <div className="nback-instruction">
-                    {!started ? `前 ${kBack} 题只看不答，点击“开始作答”后按 ${kBack}-back 规则输入` : pendingQ ? `请输入第 ${pendingQ.id} 题的答案` : `继续看题，第 ${kBack + 1} 题开始可作答`}
-                  </div>
-                  <div className="nback-input-row">
-                    <input
-                      className={`nback-input ${answerState === 'correct' ? 'correct' : ''} ${answerState === 'wrong' ? 'wrong' : ''}`}
-                      type="text"
-                      inputMode="none"
-                      readOnly
-                      value={inputValue}
-                      disabled={!running || !started || !pendingQ}
-                    />
-                  </div>
                   <div className="nback-keypad">
                     {keypadKeys.map((key) => (
                       <button key={String(key)} className="nback-key" onClick={() => handleKeypadPress(key)} disabled={!running || !started || !pendingQ}>{key}</button>
                     ))}
                   </div>
-                  {!started && <button className="nback-start-btn" onClick={startFirstRound}>开始作答</button>}
                 </div>
               </div>
             </div>
