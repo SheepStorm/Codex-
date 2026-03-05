@@ -327,6 +327,26 @@
         width: fit-content;
         margin: 0 auto;
       }
+      .nback-keypad {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(64px, 1fr));
+        gap: 10px;
+        max-width: 320px;
+        margin: 0 auto;
+      }
+      .nback-key {
+        border: 1px solid #5a5a5a;
+        border-radius: 10px;
+        background: #2a2a2a;
+        color: #fff;
+        font-size: 24px;
+        font-weight: 800;
+        padding: 12px 0;
+      }
+      .nback-key:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
 
       .seq-stage {
         width: min(90vw, 700px);
@@ -1390,6 +1410,7 @@
         const streakRef = useRef(0);
 
         const currentTraining = difficulty.trainings[0];
+        const keypadKeys = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, '⌫'];
         const bestKey = `nback_best_${difficulty.id}`;
         const kBack = difficulty.view.kBack || 1;
         const isTimed = difficulty.view.mode === 'timed';
@@ -1501,6 +1522,21 @@
           }
         }
 
+        function handleKeypadPress(key) {
+          if (!running || !started || !pendingQ) return;
+          setAnswerState('idle');
+          if (key === '⌫') {
+            setInputValue((prev) => prev.slice(0, -1));
+            return;
+          }
+          if (key === 10) {
+            setInputValue('10');
+            return;
+          }
+          const digit = String(key);
+          setInputValue((prev) => (prev === '10' ? digit : `${prev}${digit}`.slice(0, 2)));
+        }
+
         function restartCurrentMode() {
           const bestVal = Number(localStorage.getItem(bestKey) || 0);
           setBest(bestVal);
@@ -1547,13 +1583,17 @@
                   <div className="nback-input-row">
                     <input
                       className={`nback-input ${answerState === 'correct' ? 'correct' : ''} ${answerState === 'wrong' ? 'wrong' : ''}`}
-                      type="number"
+                      type="text"
+                      inputMode="none"
+                      readOnly
                       value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
                       disabled={!running || !started || !pendingQ}
-                      onKeyDown={(e) => e.key === 'Enter' && submitAnswer(inputValue)}
                     />
-                    <button className="nback-submit" onClick={() => submitAnswer(inputValue)} disabled={!running || !started || !pendingQ}>提交</button>
+                  </div>
+                  <div className="nback-keypad">
+                    {keypadKeys.map((key) => (
+                      <button key={String(key)} className="nback-key" onClick={() => handleKeypadPress(key)} disabled={!running || !started || !pendingQ}>{key}</button>
+                    ))}
                   </div>
                   {!started && <button className="nback-start-btn" onClick={startFirstRound}>开始作答</button>}
                 </div>
