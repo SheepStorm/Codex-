@@ -708,24 +708,29 @@
         });
       }
 
-      function generateNBackQuestion(id, maxResult) {
-        const isAdd = Math.random() < 0.5;
-        let a;
-        let b;
-        let op;
-        let answer;
-        if (isAdd) {
-          a = Math.floor(Math.random() * (maxResult + 1));
-          b = Math.floor(Math.random() * (maxResult - a + 1));
-          op = '+';
-          answer = a + b;
-        } else {
-          a = Math.floor(Math.random() * (maxResult + 1));
-          b = Math.floor(Math.random() * (a + 1));
-          op = '-';
-          answer = a - b;
+      function generateNBackQuestion(id, maxResult, prevText = null) {
+        let nextQuestion = null;
+        for (let attempts = 0; attempts < 20; attempts++) {
+          const isAdd = Math.random() < 0.5;
+          let a;
+          let b;
+          let op;
+          let answer;
+          if (isAdd) {
+            a = Math.floor(Math.random() * (maxResult + 1));
+            b = Math.floor(Math.random() * (maxResult - a + 1));
+            op = '+';
+            answer = a + b;
+          } else {
+            a = Math.floor(Math.random() * (maxResult + 1));
+            b = Math.floor(Math.random() * (a + 1));
+            op = '-';
+            answer = a - b;
+          }
+          nextQuestion = { id, a, b, op, answer, text: `${a} ${op} ${b} = ?` };
+          if (nextQuestion.text !== prevText) break;
         }
-        return { id, a, b, op, answer, text: `${a} ${op} ${b} = ?` };
+        return nextQuestion;
       }
 
       function createSequenceMemoryChars(contentType, length) {
@@ -1483,7 +1488,7 @@
 
         function moveToNextQuestion(baseList) {
           const nextId = baseList.length + 1;
-          const nextQ = generateNBackQuestion(nextId, difficulty.view.maxResult);
+          const nextQ = generateNBackQuestion(nextId, difficulty.view.maxResult, baseList[baseList.length - 1]?.text || null);
           const nextList = [...baseList, nextQ];
           setShownQuestions(nextList);
           setCurrentQ(nextQ);
