@@ -1459,12 +1459,6 @@
           window.addEventListener('keydown', onKey);
           return () => window.removeEventListener('keydown', onKey);
         }, [showPrepare]);
-
-        useEffect(() => {
-          if (showPrepare || started) return;
-          startFirstRound();
-        }, [showPrepare, started]);
-
         useEffect(() => {
           if (!running || !started || !pendingQ) return;
           const raw = inputValue.trim();
@@ -1586,6 +1580,7 @@
                       <button key={String(key)} className="nback-key" onClick={() => handleKeypadPress(key)} disabled={!running || !started || !pendingQ}>{key}</button>
                     ))}
                   </div>
+                  {!started && <button className="nback-start-btn" onClick={startFirstRound}>开始作答</button>}
                 </div>
               </div>
             </div>
