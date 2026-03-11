@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Training Lab</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="home-page" class="page active" aria-labelledby="home-title">
+        <div class="panel">
+          <p class="eyebrow">Brain Training Lab</p>
+          <h1 id="home-title">专注训练实验室</h1>
+          <p class="subtitle">以极简、克制的方式，开启你的认知练习。</p>
+          <button id="enter-btn" class="glass-btn" type="button">请选择训练项目</button>
+        </div>
+      </section>
+
+      <section id="selection-page" class="page" aria-labelledby="selection-title">
+        <div class="panel">
+          <p class="eyebrow">Training Selection</p>
+          <h2 id="selection-title">选择训练项目</h2>
+          <p class="subtitle">以下模块将帮助你训练注意力、抑制控制与工作记忆。</p>
+          <div class="option-grid" role="list" aria-label="训练项目">
+            <button class="glass-btn option" role="listitem" type="button">舒尔特表</button>
+            <button class="glass-btn option" role="listitem" type="button">Stroop训练</button>
+            <button class="glass-btn option" role="listitem" type="button">1-back加减法</button>
+            <button class="glass-btn option" role="listitem" type="button">序列工作记忆训练</button>
+          </div>
+          <button id="back-btn" class="text-btn" type="button">返回封面</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
