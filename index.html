@@ -454,6 +454,139 @@
         cursor: pointer;
       }
 
+      /* zen.ai style theme overrides (visual-only) */
+      :root {
+        --bg: #111111;
+        --accent: #eae6df;
+        --text-main: #eae6df;
+        --text-sub: #a9a39a;
+        --success: #eae6df;
+        --danger: #eae6df;
+        --basic: #eae6df;
+        --advanced: #eae6df;
+        --pro: #eae6df;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text-main);
+        letter-spacing: -0.01em;
+      }
+      .page {
+        border: 1px solid rgba(234, 230, 223, 0.15);
+        margin: 1rem;
+        width: calc(100% - 2rem);
+        height: calc(100% - 2rem);
+      }
+      .home,
+      .list-page,
+      .training-page {
+        background: #111111;
+      }
+      .home-inner,
+      .list-page,
+      .training-page {
+        position: relative;
+      }
+      .home-inner::before,
+      .home-inner::after,
+      .training-page::before,
+      .training-page::after {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        opacity: 0.45;
+        background:
+          linear-gradient(var(--text-main), var(--text-main)) center/1px 100% no-repeat,
+          linear-gradient(var(--text-main), var(--text-main)) center/100% 1px no-repeat;
+      }
+      .home-inner::before,
+      .training-page::before { top: 12px; left: 12px; }
+      .home-inner::after,
+      .training-page::after { bottom: 12px; right: 12px; }
+      .brain-wrap {
+        filter: none;
+        opacity: 0.92;
+      }
+      .main-title {
+        font-weight: 600;
+        text-transform: lowercase;
+        letter-spacing: -0.04em;
+        line-height: 0.9;
+      }
+      .subtitle,
+      .list-sub,
+      .count,
+      .training-info p,
+      .tip {
+        font-family: 'JetBrains Mono', 'SF Mono', 'Roboto Mono', monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-size: 0.7rem;
+      }
+      .cta,
+      .next-btn,
+      .nback-start-btn,
+      .back {
+        border-radius: 0;
+        border: 1px solid rgba(234, 230, 223, 0.28);
+        background: transparent;
+        color: var(--text-main);
+      }
+      .cta:hover,
+      .card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: rgba(234, 230, 223, 0.5);
+      }
+      .cards {
+        gap: 0;
+        border-top: 1px solid rgba(234, 230, 223, 0.15);
+      }
+      .card {
+        border-radius: 0;
+        border: 0;
+        border-bottom: 1px solid rgba(234, 230, 223, 0.15);
+        background: #111111;
+      }
+      .card p {
+        color: var(--text-sub);
+      }
+      .tag,
+      .icon {
+        border-radius: 0;
+      }
+      .grid,
+      .stroop-board,
+      .nback-shell,
+      .seq-stage,
+      .modal {
+        background: #111111;
+        border-radius: 0;
+        border: 1px solid rgba(234, 230, 223, 0.15);
+      }
+      .cell,
+      .stroop-cell,
+      .nback-key,
+      .seq-input,
+      .seq-slot,
+      .seq-option {
+        border-radius: 0;
+        background: #151515;
+        border: 1px solid rgba(234, 230, 223, 0.15);
+        color: var(--text-main);
+      }
+      .cell.done {
+        background: rgba(234, 230, 223, 0.1);
+        border-color: rgba(234, 230, 223, 0.45);
+        color: var(--text-main) !important;
+      }
+      .highlight,
+      .hl,
+      .nback-stats b {
+        color: var(--text-main);
+      }
+
       @media (max-width: 900px) {
         .training-main { grid-template-columns: 1fr; }
         .side-control {
