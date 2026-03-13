@@ -1,0 +1,178 @@
+:root {
+  --bg: radial-gradient(circle at 12% 15%, #f7f8fb 0%, #f2f3f6 36%, #eef0f4 100%);
+  --card-width: min(86vw, 520px);
+  --card-height: calc(var(--card-width) * 0.62);
+  --radius: 24px;
+  --glow-color: rgba(219, 235, 255, 0.34);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  min-height: 100%;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: #fdfdfd;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 24px;
+}
+
+.card-stage {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.premium-card {
+  position: relative;
+  width: var(--card-width);
+  height: var(--card-height);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 0% 100%, rgba(255, 255, 255, 0.06), transparent 50%),
+    linear-gradient(140deg, #07080a 0%, #0f1218 42%, #0a0c11 76%, #06070a 100%);
+  box-shadow:
+    0 14px 36px rgba(11, 15, 24, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -24px 44px rgba(0, 0, 0, 0.35);
+  transform: translateY(10px);
+  opacity: 0;
+  animation: card-intro 920ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
+  transition: transform 240ms ease, box-shadow 280ms ease;
+}
+
+.premium-card.hovering {
+  transform: translateY(-2px) scale(1.005);
+  box-shadow:
+    0 20px 44px rgba(11, 15, 24, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.17),
+    inset 0 -24px 44px rgba(0, 0, 0, 0.38);
+}
+
+.card-surface,
+.card-content,
+.scratch-layer,
+.cursor-glow {
+  position: absolute;
+  inset: 0;
+}
+
+.card-surface {
+  pointer-events: none;
+}
+
+.surface-noise {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.055) 0.45px, transparent 0.45px),
+    radial-gradient(rgba(255, 255, 255, 0.025) 0.6px, transparent 0.6px);
+  background-size: 3px 3px, 5px 5px;
+  mix-blend-mode: soft-light;
+  opacity: 0.35;
+}
+
+.surface-lines {
+  position: absolute;
+  inset: 8% 7%;
+  border-radius: calc(var(--radius) - 8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0.22;
+}
+
+.surface-orb {
+  position: absolute;
+  width: 56%;
+  aspect-ratio: 1;
+  top: -46%;
+  right: -12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.02) 62%, transparent 70%);
+  filter: blur(2px);
+  opacity: 0.38;
+  transform: translate3d(var(--orb-x, 0), var(--orb-y, 0), 0);
+  transition: transform 300ms ease-out;
+}
+
+.card-content {
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 0.02em;
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.currency,
+.amount {
+  transition: transform 380ms ease, filter 380ms ease;
+}
+
+.currency {
+  font-size: clamp(2rem, 4vw, 2.65rem);
+  font-weight: 700;
+  color: rgba(248, 248, 245, 0.96);
+}
+
+.amount {
+  font-size: clamp(3.35rem, 8vw, 5rem);
+  line-height: 1;
+  font-weight: 800;
+  color: #fefcf7;
+}
+
+.card-content.revealed .currency,
+.card-content.revealed .amount {
+  transform: scale(1.035);
+  filter: brightness(1.1);
+}
+
+.scratch-layer {
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius);
+}
+
+.cursor-glow {
+  z-index: 4;
+  pointer-events: none;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: radial-gradient(circle, var(--glow-color) 0%, rgba(220, 233, 252, 0.15) 30%, rgba(210, 226, 248, 0.06) 52%, transparent 72%);
+  filter: blur(10px);
+  transition: opacity 260ms ease, transform 320ms ease;
+}
+
+.cursor-glow.visible {
+  opacity: 0.75;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.cursor-glow.scratching {
+  opacity: 0.96;
+}
+
+@keyframes card-intro {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
