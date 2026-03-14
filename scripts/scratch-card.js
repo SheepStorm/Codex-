@@ -1,19 +1,30 @@
 (() => {
   const CONFIG = {
-    rewardValue: 5,
-    brushRadius: 30,
+    brushRadius: 31,
     revealThreshold: 0.5,
-    settleFadeDuration: 620,
-    cornerRadius: 32,
+    settleFadeDuration: 650,
+    cornerRadius: 34,
+    miraclePool: [
+      '✈ PRIVATE JET',
+      '🚀 ROCKET',
+      '🐳 GIANT WHALE',
+      '🏝 PRIVATE ISLAND',
+      '🐉 DRAGON',
+      '🏎 SUPERCAR',
+      '🛸 UFO',
+      '🌋 VOLCANO',
+      '🪐 PLANET',
+      '🏰 CASTLE',
+    ],
   };
 
   const card = document.getElementById('scratchCard');
   const canvas = document.getElementById('scratchCanvas');
-  const amountNode = document.getElementById('rewardAmount');
+  const rewardNode = document.getElementById('miracleReward');
   const contentNode = document.getElementById('cardContent');
   const glowNode = document.getElementById('cursorGlow');
 
-  if (!card || !canvas || !amountNode || !contentNode || !glowNode) {
+  if (!card || !canvas || !rewardNode || !contentNode || !glowNode) {
     return;
   }
 
@@ -30,7 +41,8 @@
   bindEvents();
 
   function initializeReward() {
-    amountNode.textContent = String(CONFIG.rewardValue);
+    const randomIndex = Math.floor(Math.random() * CONFIG.miraclePool.length);
+    rewardNode.textContent = CONFIG.miraclePool[randomIndex];
   }
 
   function resizeCanvas() {
@@ -44,62 +56,63 @@
 
   function drawMask() {
     const { width, height } = card.getBoundingClientRect();
+
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, width, height);
 
-    const base = ctx.createLinearGradient(0, 0, width, height);
-    base.addColorStop(0, '#47166c');
-    base.addColorStop(0.45, '#3d1f6a');
-    base.addColorStop(1, '#20345b');
-
-    ctx.fillStyle = base;
+    const kevlarBase = ctx.createLinearGradient(0, 0, width, height);
+    kevlarBase.addColorStop(0, '#171b20');
+    kevlarBase.addColorStop(0.45, '#242b34');
+    kevlarBase.addColorStop(1, '#111419');
+    ctx.fillStyle = kevlarBase;
     roundRect(ctx, 0, 0, width, height, CONFIG.cornerRadius);
     ctx.fill();
 
-    const stickerSheen = ctx.createLinearGradient(0, 0, width, height * 0.78);
-    stickerSheen.addColorStop(0, 'rgba(255, 255, 255, 0.34)');
-    stickerSheen.addColorStop(0.36, 'rgba(255, 255, 255, 0.12)');
-    stickerSheen.addColorStop(0.75, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = stickerSheen;
+    drawKevlarWeave(width, height);
+
+    const sheen = ctx.createLinearGradient(0, 0, width, height * 0.9);
+    sheen.addColorStop(0, 'rgba(255, 255, 255, 0.19)');
+    sheen.addColorStop(0.3, 'rgba(255, 255, 255, 0.08)');
+    sheen.addColorStop(0.75, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = sheen;
     roundRect(ctx, 0, 0, width, height, CONFIG.cornerRadius);
     ctx.fill();
 
-    addMaskTexture(width, height);
-    addSparkleStamps(width, height);
+    addMaskParticles(width, height);
   }
 
-  function addMaskTexture(width, height) {
-    for (let i = 0; i < 2400; i += 1) {
-      const x = Math.random() * width;
-      const y = Math.random() * height;
-      const alpha = 0.03 + Math.random() * 0.07;
-      const tone = 210 + Math.floor(Math.random() * 45);
-      ctx.fillStyle = `rgba(${tone}, ${tone}, 255, ${alpha})`;
-      ctx.fillRect(x, y, 1, 1);
-    }
-  }
-
-  function addSparkleStamps(width, height) {
+  function drawKevlarWeave(width, height) {
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 244, 170, 0.35)';
-    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = 'rgba(206, 217, 229, 0.09)';
+    ctx.lineWidth = 1;
 
-    for (let i = 0; i < 18; i += 1) {
-      const x = 24 + Math.random() * (width - 48);
-      const y = 20 + Math.random() * (height - 40);
-      drawSparkle(x, y, 6 + Math.random() * 4);
+    for (let x = -height; x < width + height; x += 8) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + height, height);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = 'rgba(184, 195, 206, 0.07)';
+    for (let x = -height; x < width + height; x += 8) {
+      ctx.beginPath();
+      ctx.moveTo(x + height, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
     }
 
     ctx.restore();
   }
 
-  function drawSparkle(x, y, size) {
-    ctx.beginPath();
-    ctx.moveTo(x, y - size);
-    ctx.lineTo(x, y + size);
-    ctx.moveTo(x - size, y);
-    ctx.lineTo(x + size, y);
-    ctx.stroke();
+  function addMaskParticles(width, height) {
+    for (let i = 0; i < 2600; i += 1) {
+      const x = Math.random() * width;
+      const y = Math.random() * height;
+      const alpha = 0.018 + Math.random() * 0.08;
+      const tone = 160 + Math.floor(Math.random() * 70);
+      ctx.fillStyle = `rgba(${tone}, ${tone}, ${tone}, ${alpha})`;
+      ctx.fillRect(x, y, 1, 1);
+    }
   }
 
   function bindEvents() {
@@ -156,7 +169,7 @@
     const nx = (event.clientX - rect.left) / rect.width - 0.5;
     const ny = (event.clientY - rect.top) / rect.height - 0.5;
 
-    card.style.setProperty('--orb-x', `${nx * -18}px`);
+    card.style.setProperty('--orb-x', `${nx * -17}px`);
     card.style.setProperty('--orb-y', `${ny * -15}px`);
   }
 
@@ -169,7 +182,7 @@
 
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, CONFIG.brushRadius);
     gradient.addColorStop(0, 'rgba(0, 0, 0, 0.98)');
-    gradient.addColorStop(0.62, 'rgba(0, 0, 0, 0.45)');
+    gradient.addColorStop(0.56, 'rgba(0, 0, 0, 0.52)');
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
     ctx.fillStyle = gradient;
@@ -177,7 +190,21 @@
     ctx.arc(x, y, CONFIG.brushRadius, 0, Math.PI * 2);
     ctx.fill();
 
+    scratchDust(x, y);
     requestRevealCheck();
+  }
+
+  function scratchDust(x, y) {
+    for (let i = 0; i < 6; i += 1) {
+      const offsetX = (Math.random() - 0.5) * CONFIG.brushRadius;
+      const offsetY = (Math.random() - 0.5) * CONFIG.brushRadius;
+      const radius = 1 + Math.random() * 2;
+
+      ctx.beginPath();
+      ctx.arc(x + offsetX, y + offsetY, radius, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.26)';
+      ctx.fill();
+    }
   }
 
   function requestRevealCheck() {
@@ -201,7 +228,7 @@
     let transparentPixels = 0;
 
     for (let i = 3; i < pixels.length; i += 4) {
-      if (pixels[i] < 14) {
+      if (pixels[i] < 15) {
         transparentPixels += 1;
       }
     }

@@ -3,25 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Premium Scratch Card</title>
+    <title>Today's Miracle Scratch Card</title>
     <link rel="stylesheet" href="styles/scratch-card.css" />
   </head>
   <body>
     <main class="app-shell">
-      <section class="card-stage" aria-label="刮刮乐卡片">
+      <section class="card-stage" aria-label="Today's Miracle 刮卡">
         <article class="premium-card" id="scratchCard">
           <div class="card-surface" aria-hidden="true">
-            <div class="surface-noise"></div>
-            <div class="surface-lines"></div>
-            <div class="surface-orb"></div>
+            <div class="surface-fiber"></div>
+            <div class="surface-grid"></div>
+            <div class="surface-highlight"></div>
           </div>
 
           <div class="card-content" id="cardContent">
-            <span class="currency">￥</span>
-            <strong class="amount" id="rewardAmount">5</strong>
+            <p class="miracle-title">TODAY'S MIRACLE</p>
+            <p class="miracle-reward" id="miracleReward">🚀 ROCKET</p>
           </div>
 
-          <canvas id="scratchCanvas" class="scratch-layer" aria-label="可刮开遮罩"></canvas>
+          <canvas id="scratchCanvas" class="scratch-layer" aria-label="Kevlar 刮层"></canvas>
           <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
         </article>
       </section>
