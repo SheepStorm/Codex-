@@ -1,9 +1,11 @@
 :root {
-  --bg: radial-gradient(circle at 12% 15%, #f7f8fb 0%, #f2f3f6 36%, #eef0f4 100%);
-  --card-width: min(86vw, 520px);
+  --bg-a: #6dff3d;
+  --bg-b: #ffe24d;
+  --bg-c: #ff5b3f;
+  --card-width: min(88vw, 560px);
   --card-height: calc(var(--card-width) * 0.62);
-  --radius: 24px;
-  --glow-color: rgba(219, 235, 255, 0.34);
+  --radius: 32px;
+  --outline: rgba(34, 26, 22, 0.55);
 }
 
 * {
@@ -15,16 +17,52 @@ body {
   margin: 0;
   width: 100%;
   min-height: 100%;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
-  color: #fdfdfd;
+  font-family: 'Trebuchet MS', 'Segoe UI', 'PingFang SC', sans-serif;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.48) 0%, transparent 36%),
+    radial-gradient(circle at 80% 12%, rgba(255, 232, 98, 0.78) 0%, transparent 34%),
+    radial-gradient(circle at 74% 80%, rgba(255, 106, 81, 0.75) 0%, transparent 40%),
+    linear-gradient(135deg, var(--bg-a) 0%, var(--bg-b) 52%, var(--bg-c) 100%);
 }
 
 .app-shell {
+  position: relative;
+  width: 100%;
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 40px 24px;
+  padding: 36px 24px;
+}
+
+.app-shell::before,
+.app-shell::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(2px);
+}
+
+.app-shell::before {
+  width: min(66vw, 760px);
+  aspect-ratio: 1;
+  left: -12%;
+  bottom: -28%;
+  background: radial-gradient(circle, rgba(255, 237, 125, 0.44) 0%, rgba(255, 237, 125, 0.1) 40%, transparent 72%);
+}
+
+.app-shell::after {
+  width: min(62vw, 720px);
+  aspect-ratio: 1;
+  right: -16%;
+  top: -34%;
+  background: radial-gradient(circle, rgba(255, 103, 80, 0.42) 0%, rgba(255, 103, 80, 0.08) 44%, transparent 72%);
 }
 
 .card-stage {
@@ -39,25 +77,27 @@ body {
   height: var(--card-height);
   border-radius: var(--radius);
   overflow: hidden;
+  border: 3px solid var(--outline);
   background:
-    radial-gradient(120% 90% at 0% 100%, rgba(255, 255, 255, 0.06), transparent 50%),
-    linear-gradient(140deg, #07080a 0%, #0f1218 42%, #0a0c11 76%, #06070a 100%);
+    radial-gradient(130% 100% at 8% 0%, rgba(255, 255, 255, 0.24), transparent 38%),
+    radial-gradient(90% 70% at 84% 86%, rgba(115, 255, 92, 0.26), transparent 50%),
+    linear-gradient(145deg, #18392c 0%, #3e1732 52%, #2f1134 100%);
   box-shadow:
-    0 14px 36px rgba(11, 15, 24, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -24px 44px rgba(0, 0, 0, 0.35);
-  transform: translateY(10px);
+    0 20px 0 rgba(114, 42, 28, 0.24),
+    0 28px 54px rgba(55, 22, 18, 0.32),
+    inset 0 2px 0 rgba(255, 255, 255, 0.26);
+  transform: translateY(12px) scale(0.96);
   opacity: 0;
-  animation: card-intro 920ms cubic-bezier(0.19, 1, 0.22, 1) forwards;
-  transition: transform 240ms ease, box-shadow 280ms ease;
+  animation: card-pop 760ms cubic-bezier(0.2, 1.15, 0.28, 1) forwards;
+  transition: transform 200ms ease, box-shadow 240ms ease;
 }
 
 .premium-card.hovering {
-  transform: translateY(-2px) scale(1.005);
+  transform: translateY(-4px) rotate(-0.4deg) scale(1.01);
   box-shadow:
-    0 20px 44px rgba(11, 15, 24, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.17),
-    inset 0 -24px 44px rgba(0, 0, 0, 0.38);
+    0 24px 0 rgba(114, 42, 28, 0.2),
+    0 34px 58px rgba(55, 22, 18, 0.35),
+    inset 0 2px 0 rgba(255, 255, 255, 0.31);
 }
 
 .card-surface,
@@ -68,41 +108,33 @@ body {
   inset: 0;
 }
 
-.card-surface {
-  pointer-events: none;
-}
-
 .surface-noise {
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(rgba(255, 255, 255, 0.055) 0.45px, transparent 0.45px),
-    radial-gradient(rgba(255, 255, 255, 0.025) 0.6px, transparent 0.6px);
-  background-size: 3px 3px, 5px 5px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 0.6px, transparent 0.6px);
+  background-size: 5px 5px;
+  opacity: 0.22;
   mix-blend-mode: soft-light;
-  opacity: 0.35;
 }
 
 .surface-lines {
   position: absolute;
-  inset: 8% 7%;
-  border-radius: calc(var(--radius) - 8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  opacity: 0.22;
+  inset: 8% 6%;
+  border-radius: calc(var(--radius) - 10px);
+  border: 2px solid rgba(255, 255, 255, 0.26);
+  opacity: 0.55;
 }
 
 .surface-orb {
   position: absolute;
-  width: 56%;
+  width: 58%;
   aspect-ratio: 1;
-  top: -46%;
-  right: -12%;
+  top: -34%;
+  right: -8%;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.02) 62%, transparent 70%);
-  filter: blur(2px);
-  opacity: 0.38;
+  background: radial-gradient(circle at 52% 58%, rgba(255, 254, 193, 0.54), rgba(255, 254, 193, 0.08) 58%, transparent 74%);
   transform: translate3d(var(--orb-x, 0), var(--orb-y, 0), 0);
-  transition: transform 300ms ease-out;
+  transition: transform 260ms ease-out;
 }
 
 .card-content {
@@ -110,33 +142,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  letter-spacing: 0.02em;
-  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
-}
-
-.currency,
-.amount {
-  transition: transform 380ms ease, filter 380ms ease;
+  gap: 8px;
+  text-shadow: 0 4px 0 rgba(72, 34, 12, 0.3), 0 12px 24px rgba(0, 0, 0, 0.3);
 }
 
 .currency {
-  font-size: clamp(2rem, 4vw, 2.65rem);
-  font-weight: 700;
-  color: rgba(248, 248, 245, 0.96);
+  font-size: clamp(2rem, 4.2vw, 2.8rem);
+  font-weight: 900;
+  color: #fff6b6;
 }
 
 .amount {
-  font-size: clamp(3.35rem, 8vw, 5rem);
+  font-size: clamp(3.7rem, 8.8vw, 5.5rem);
+  font-weight: 900;
   line-height: 1;
-  font-weight: 800;
-  color: #fefcf7;
+  color: #fff;
 }
 
 .card-content.revealed .currency,
 .card-content.revealed .amount {
-  transform: scale(1.035);
-  filter: brightness(1.1);
+  animation: reward-pop 360ms ease-out;
 }
 
 .scratch-layer {
@@ -149,30 +174,57 @@ body {
 .cursor-glow {
   z-index: 4;
   pointer-events: none;
-  width: 180px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
   left: 0;
   top: 0;
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.95);
-  background: radial-gradient(circle, var(--glow-color) 0%, rgba(220, 233, 252, 0.15) 30%, rgba(210, 226, 248, 0.06) 52%, transparent 72%);
+  transform: translate(-50%, -50%) scale(0.9);
+  background: radial-gradient(circle, rgba(244, 255, 119, 0.45) 0%, rgba(160, 255, 87, 0.35) 26%, rgba(112, 255, 131, 0.16) 52%, transparent 74%);
   filter: blur(10px);
-  transition: opacity 260ms ease, transform 320ms ease;
+  transition: opacity 240ms ease, transform 280ms ease;
 }
 
 .cursor-glow.visible {
-  opacity: 0.75;
+  opacity: 0.72;
   transform: translate(-50%, -50%) scale(1);
 }
 
 .cursor-glow.scratching {
-  opacity: 0.96;
+  opacity: 0.95;
 }
 
-@keyframes card-intro {
-  to {
-    transform: translateY(0);
+@keyframes card-pop {
+  0% {
+    transform: translateY(18px) scale(0.92);
+    opacity: 0;
+  }
+
+  70% {
+    transform: translateY(-4px) scale(1.01);
     opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes reward-pop {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+    filter: brightness(1.22);
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
   }
 }
