@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Today's Miracle Scratch Card</title>
+    <link rel="stylesheet" href="styles/scratch-card.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card-stage" aria-label="Today's Miracle 刮卡">
+        <article class="premium-card" id="scratchCard">
+          <div class="card-surface" aria-hidden="true">
+            <div class="surface-fiber"></div>
+            <div class="surface-grid"></div>
+            <div class="surface-highlight"></div>
+          </div>
+
+          <div class="card-content" id="cardContent">
+            <p class="miracle-title">TODAY'S MIRACLE</p>
+            <p class="miracle-reward" id="miracleReward">🚀 ROCKET</p>
+          </div>
+
+          <canvas id="scratchCanvas" class="scratch-layer" aria-label="Kevlar 刮层"></canvas>
+          <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="scripts/scratch-card.js"></script>
+  </body>
+</html>
